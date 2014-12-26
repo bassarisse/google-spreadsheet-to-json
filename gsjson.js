@@ -5,7 +5,7 @@ var fs = require('fs');
 var program = require('commander');
 
 program
-    .version('0.1.1')
+    .version('0.1.2')
     .usage('<spreadsheet-id> <file> [options]')
     .option('-u, --user [user]', 'User to login')
     .option('-p, --password [password]', 'Password to login')
@@ -104,10 +104,12 @@ function run() {
                         hasValues = true;
                     }
 
+                    var colNumber = cell[colProp];
+
                     if (program.listOnly)
-                        newObject.push(val);
+                        newObject[colNumber - 1] = val;
                     else
-                        newObject[properties[cell[colProp]]] = val;
+                        newObject[properties[colNumber]] = val;
                 });
 
                 if (hasValues) {
