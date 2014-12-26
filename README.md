@@ -34,6 +34,11 @@ npm install -g google-spreadsheet-to-json
 ```
 
 
+### Note
+
+A spreadsheet ID can be extracted from its URL.
+
+
 ## Usage - Public Spreadsheets
 
 ```
@@ -48,9 +53,102 @@ gsjson abc123456789 data.json -u username -p password
 ```
 
 
-## Note
+## Known issues
 
-A spreadsheet ID can be extracted from its URL.
+- Although public spreadsheets should work without authentication, currently an error is occurring. If this happens to you, try providing username and password.
+
+
+## Example 1 (simple array):
+
+Id | Name | Age | Newsletter
+-- | ---- | --- | ----------
+1 | Joisse Wendell | 25 | TRUE
+2 | Brand Katelin | 16 | FALSE
+3 | Gloriana Goldie |  | TRUE
+
+Command:
+```
+gsjson abc123456789 data.json -b
+```
+
+Output:
+```json
+[
+    {
+        "id": 1,
+        "name": "Joisse Wendell",
+        "age": 25,
+        "newsletter": true
+    },
+    {
+        "id": 2,
+        "name": "Brand Katelin",
+        "age": 16,
+        "newsletter": false
+    },
+    {
+        "id": 3,
+        "name": "Gloriana Goldie",
+        "newsletter": true
+    }
+]
+```
+
+
+## Example 2 (hashed object):
+
+Id | Name | Age | Newsletter
+-- | ---- | --- | ----------
+1 | Joisse Wendell | 25 | TRUE
+2 | Brand Katelin | 16 | FALSE
+3 | Gloriana Goldie |  | TRUE
+
+Command:
+```
+gsjson abc123456789 data.json -c id -b
+```
+
+Output:
+```json
+{
+    "1": {
+        "id": 1,
+        "name": "Joisse Wendell",
+        "age": 25,
+        "newsletter": true
+    },
+    "2": {
+        "id": 2,
+        "name": "Brand Katelin",
+        "age": 16,
+        "newsletter": false
+    },
+    "3": {
+        "id": 3,
+        "name": "Gloriana Goldie",
+        "newsletter": true
+    }
+}
+```
+
+
+## Example 3 (vertical data, without beautifying):
+
+Id | 1 | 2 | 3
+-- | - | - | -
+Name | Joisse Wendell | Brand Katelin | Gloriana Goldie
+Age | 25 | 16 | 
+Newsletter | TRUE | FALSE | TRUE
+
+Command:
+```
+gsjson abc123456789 data.json -i
+```
+
+Output:
+```json
+[{"id":1,"name":"Joisse Wendell","age":25,"newsletter":true},{"id":2,"name":"Brand Katelin","age":16,"newsletter":false},{"id":3,"name":"Gloriana Goldie","newsletter":true}]
+```
 
 
 ## License
