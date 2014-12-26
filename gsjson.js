@@ -5,7 +5,7 @@ var fs = require('fs');
 var program = require('commander');
 
 program
-    .version('0.1.0')
+    .version('0.1.1')
     .usage('<spreadsheet-id> <file> [options]')
     .option('-u, --user [user]', 'User to login')
     .option('-p, --password [password]', 'Password to login')
@@ -28,6 +28,8 @@ var spreadsheet = new GoogleSpreadsheet(spreadsheetId);
 
 if (program.user && program.password) {
     spreadsheet.setAuth(program.user, program.password, function(err) {
+        if (err)
+            throw err;
         run();
     });
 } else {
@@ -37,8 +39,12 @@ if (program.user && program.password) {
 function run() {
 
     spreadsheet.getInfo(function(err, sheet_info) {
+        if (err)
+            throw err;
 
         sheet_info.worksheets[worksheetIndex].getCells(function(err, cells) {
+            if (err)
+                throw err;
 
             var rowProp = program.vertical ? "col" : "row";
             var colProp = program.vertical ? "row" : "col";
@@ -115,6 +121,8 @@ function run() {
             var json = JSON.stringify(finalList, null, program.beautify ? 4 : null);
 
             fs.writeFile(filename, json, "utf-8", function(err) {
+                if (err)
+                    throw err;
                 process.exit(0);
             });
 
