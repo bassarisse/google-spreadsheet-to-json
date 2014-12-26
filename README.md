@@ -39,14 +39,14 @@ npm install -g google-spreadsheet-to-json
 A spreadsheet ID can be extracted from its URL.
 
 
-## Usage - Public Spreadsheets
+## Usage (public Spreadsheets)
 
 ```
 gsjson abc123456789 data.json
 ```
 
 
-## Usage - Private Spreadsheets
+## Usage (private Spreadsheets)
 
 ```
 gsjson abc123456789 data.json -u username -p password
@@ -58,13 +58,13 @@ gsjson abc123456789 data.json -u username -p password
 - Although public spreadsheets should work without authentication, currently an error is occurring. If this happens to you, try providing username and password.
 
 
-## Example 1 (simple array):
+## Example 1 (array of objects):
 
-Id | Name | Age | Newsletter
--- | ---- | --- | ----------
-1 | Joisse Wendell | 25 | TRUE
-2 | Brand Katelin | 16 | FALSE
-3 | Gloriana Goldie |  | TRUE
+| Id | Name | Age | Newsletter |
+| -- | ---- | --- | ---------- |
+| 1 | Joisse Wendell | 25 | TRUE |
+| 2 | Brand Katelin | 16 | FALSE |
+| 3 | Gloriana Goldie |  | TRUE |
 
 Command:
 ```
@@ -97,15 +97,15 @@ Output:
 
 ## Example 2 (hashed object):
 
-Id | Name | Age | Newsletter
--- | ---- | --- | ----------
-1 | Joisse Wendell | 25 | TRUE
-2 | Brand Katelin | 16 | FALSE
-3 | Gloriana Goldie |  | TRUE
+| Id | Name | Age | Newsletter |
+| -- | ---- | --- | ---------- |
+| 1 | Joisse Wendell | 25 | TRUE |
+| 2 | Brand Katelin | 16 | FALSE |
+| 3 | Gloriana Goldie |  | TRUE |
 
 Command:
 ```
-gsjson abc123456789 data.json -c id -b
+gsjson abc123456789 data.json -b -c id
 ```
 
 Output:
@@ -132,13 +132,51 @@ Output:
 ```
 
 
-## Example 3 (vertical data, without beautifying):
+## Example 3 (list of values):
 
-Id | 1 | 2 | 3
--- | - | - | -
-Name | Joisse Wendell | Brand Katelin | Gloriana Goldie
-Age | 25 | 16 | 
-Newsletter | TRUE | FALSE | TRUE
+| Id | Name | Age | Newsletter |
+| -- | ---- | --- | ---------- |
+| 1 | Joisse Wendell | 25 | TRUE |
+| 2 | Brand Katelin | 16 | FALSE |
+| 3 | Gloriana Goldie |  | TRUE |
+
+Command:
+```
+gsjson abc123456789 data.json -b -l
+```
+
+Output:
+```json
+[
+    [
+        1,
+        "Joisse Wendell",
+        25,
+        true
+    ],
+    [
+        2,
+        "Brand Katelin",
+        16,
+        false
+    ],
+    [
+        3,
+        "Gloriana Goldie",
+        null,
+        true
+    ]
+]
+```
+
+
+## Example 4 (vertical data, without beautifying):
+
+| Id | 1 | 2 | 3 |
+| -- | - | - | - |
+| Name | Joisse Wendell | Brand Katelin | Gloriana Goldie |
+| Age | 25 | 16 |  |
+| Newsletter | TRUE | FALSE | TRUE |
 
 Command:
 ```
