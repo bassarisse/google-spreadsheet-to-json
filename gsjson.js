@@ -5,7 +5,7 @@ var fs = require('fs');
 var program = require('commander');
 
 program
-    .version('0.1.3')
+    .version('0.1.4')
     .usage('<spreadsheet-id> <file> [options]')
     .option('-u, --user [user]', 'User to login')
     .option('-p, --password [password]', 'Password to login')
