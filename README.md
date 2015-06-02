@@ -22,15 +22,17 @@ npm install -g google-spreadsheet-to-json
 
   Options:
 
-    -h, --help                 output usage information
-    -V, --version              output the version number
-    -u, --user [user]          User to login
-    -p, --password [password]  Password to login
-    -w, --worksheet <n>        Worksheet index
-    -c, --hash [column]        Column to hash the final JSON
-    -i, --vertical             Use the first column as header
-    -l, --list-only            Ignore headers and just list the values in arrays
-    -b, --beautify             Beautify final JSON
+    -h, --help                   output usage information
+    -V, --version                output the version number
+    -u, --user [user]            User to login
+    -p, --password [password]    Password to login
+    -t, --token [token]          Auth token acquired externally
+    -y, --tokentype [tokentype]  Type of the informed token (defaults to Bearer)
+    -w, --worksheet <n>          Worksheet index
+    -c, --hash [column]          Column to hash the final JSON
+    -i, --vertical               Use the first column as header
+    -l, --list-only              Ignore headers and just list the values in arrays
+    -b, --beautify               Beautify final JSON
 ```
 
 
@@ -49,13 +51,18 @@ gsjson abc123456789 data.json
 ## Usage (private Spreadsheets)
 
 ```
-gsjson abc123456789 data.json -u username -p password
+gsjson abc123456789 data.json -t authtoken
 ```
 
 
 ## Known issues
 
-- Although public spreadsheets should work without authentication, currently an error is occurring. If this happens to you, try providing username and password.
+- Since Google now enforces OAuth 2.0, this module offers an argument for the auth token. One of the methods to acquire a temporary token:
+  - Access Google OAuth 2.0 Playground: https://developers.google.com/oauthplayground/
+  - Enter the scope: https://spreadsheets.google.com/feeds/
+  - Authorize and retrieve your access token
+
+- Public spreadsheets can only be used without authentication if the option "File > Publish to the web" is used in the Google Spreadsheets GUI, even if the spreadsheet is visible to everyone. This problem won't occur when authenticated.
 
 
 ## Example 1 (array of objects):

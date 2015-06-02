@@ -5,10 +5,12 @@ var fs = require('fs');
 var program = require('commander');
 
 program
-    .version('0.1.2')
+    .version('0.1.3')
     .usage('<spreadsheet-id> <file> [options]')
     .option('-u, --user [user]', 'User to login')
     .option('-p, --password [password]', 'Password to login')
+    .option('-t, --token [token]', 'Auth token acquired externally')
+    .option('-y, --tokentype [tokentype]', 'Type of the informed token (defaults to Bearer)')
     .option('-w, --worksheet <n>', 'Worksheet index', parseInt)
     .option('-c, --hash [column]', 'Column to hash the final JSON')
     .option('-i, --vertical', 'Use the first column as header')
@@ -26,7 +28,14 @@ var filename = program.args[1];
 
 var spreadsheet = new GoogleSpreadsheet(spreadsheetId);
 
-if (program.user && program.password) {
+if (program.token) {
+    var tokentype = program.tokentype || "Bearer";
+    spreadsheet.setAuthToken({
+        value: program.token,
+        type: tokentype
+    });
+    run();
+} else if (program.user && program.password) {
     spreadsheet.setAuth(program.user, program.password, function(err) {
         if (err)
             throw err;
