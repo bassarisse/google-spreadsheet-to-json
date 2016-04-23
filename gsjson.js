@@ -3,9 +3,10 @@
 var GoogleSpreadsheet = require('google-spreadsheet');
 var fs = require('fs');
 var program = require('commander');
+var packageData = require('./package.json');
 
 program
-    .version('0.1.5')
+    .version(packageData.version)
     .usage('<spreadsheet-id> <file> [options]')
     .option('-u, --user [user]', 'User to login')
     .option('-p, --password [password]', 'Password to login')
