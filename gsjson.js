@@ -30,20 +30,26 @@ var filename = program.args[1];
 var spreadsheet = new GoogleSpreadsheet(spreadsheetId);
 
 if (program.token) {
+
     var tokentype = program.tokentype || 'Bearer';
     spreadsheet.setAuthToken({
         value: program.token,
         type: tokentype
     });
     run();
+
 } else if (program.user && program.password) {
+
     spreadsheet.setAuth(program.user, program.password, function(err) {
         if (err)
             throw err;
         run();
     });
+
 } else {
+
     run();
+
 }
 
 function run() {
@@ -56,8 +62,14 @@ function run() {
             if (err)
                 throw err;
 
+            // setting up some options, such as defining if the data is horizontal or vertical
+
             var rowProp = program.vertical ? 'col' : 'row';
             var colProp = program.vertical ? 'row' : 'col';
+            var isHashed = program.hash && !program.listOnly;
+            var finalList = isHashed ? {} : [];
+
+            // organizing (and ordering) the cells into arrays
 
             var rows = cells.reduce(function(rows, cell) {
                 var rowIndex = cell[rowProp] - 1;
@@ -73,10 +85,17 @@ function run() {
                 });
             });
 
-            var isHashed = program.hash && !program.listOnly;
-            var finalList = isHashed ? {} : [];
-            var properties = rows[0].reduce(function(properties, cell) {
-                if (cell.value === '')
+            // find the first row with data to use it as property names
+
+            for (var firstRowIndex = 0; firstRowIndex < rows.length; firstRowIndex++) {
+                if (rows[firstRowIndex])
+                    break;
+            }
+
+            // creating the property names map (to detect the name by index)
+
+            var properties = (rows[firstRowIndex] || []).reduce(function(properties, cell) {
+                if (typeof cell.value !== 'string' || cell.value === '')
                     return properties;
 
                 properties[cell[colProp]] = cell.value
@@ -91,14 +110,24 @@ function run() {
                 return properties;
             }, {});
 
-            rows.splice(0, 1);
-            rows.forEach(function(col) {
+            // removing first rows, before and including the one that is used as property names
+
+            rows.splice(0, firstRowIndex + 1);
+
+            // iterating through remaining row to fetch the values and build the final data object
+
+            rows.forEach(function(cells) {
 
                 var newObject = program.listOnly ? [] : {};
                 var hasValues = false;
 
-                col.forEach(function(cell) {
+                cells.forEach(function(cell) {
+
                     var val;
+                    var colNumber = cell[colProp];
+
+                    if (!program.listOnly && !properties[colNumber])
+                        return;
 
                     if (typeof cell.numericValue !== 'undefined') {
                         val = parseFloat(cell.numericValue);
@@ -114,8 +143,6 @@ function run() {
                         hasValues = true;
                     }
 
-                    var colNumber = cell[colProp];
-
                     if (program.listOnly)
                         newObject[colNumber - 1] = val;
                     else
@@ -123,12 +150,15 @@ function run() {
                 });
 
                 if (hasValues) {
-                    if (isHashed)
+                    if (isHashed) {
                         finalList[newObject[program.hash]] = newObject;
-                    else
+                    } else {
                         finalList.push(newObject);
+                    }
                 }
             });
+
+            // writing the file (duh)
 
             var json = JSON.stringify(finalList, null, program.beautify ? 4 : null);
 
