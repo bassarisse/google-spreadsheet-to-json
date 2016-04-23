@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var GoogleSpreadsheet = require("google-spreadsheet");
+var GoogleSpreadsheet = require('google-spreadsheet');
 var fs = require('fs');
 var program = require('commander');
 
@@ -29,7 +29,7 @@ var filename = program.args[1];
 var spreadsheet = new GoogleSpreadsheet(spreadsheetId);
 
 if (program.token) {
-    var tokentype = program.tokentype || "Bearer";
+    var tokentype = program.tokentype || 'Bearer';
     spreadsheet.setAuthToken({
         value: program.token,
         type: tokentype
@@ -55,12 +55,12 @@ function run() {
             if (err)
                 throw err;
 
-            var rowProp = program.vertical ? "col" : "row";
-            var colProp = program.vertical ? "row" : "col";
+            var rowProp = program.vertical ? 'col' : 'row';
+            var colProp = program.vertical ? 'row' : 'col';
 
             var rows = cells.reduce(function(rows, cell) {
                 var rowIndex = cell[rowProp] - 1;
-                if (typeof rows[rowIndex] === "undefined")
+                if (typeof rows[rowIndex] === 'undefined')
                     rows[rowIndex] = [];
                 rows[rowIndex].push(cell);
                 return rows;
@@ -75,17 +75,17 @@ function run() {
             var isHashed = program.hash && !program.listOnly;
             var finalList = isHashed ? {} : [];
             var properties = rows[0].reduce(function(properties, cell) {
-                if (cell.value === "")
+                if (cell.value === '')
                     return properties;
 
                 properties[cell[colProp]] = cell.value
                     .toLowerCase()
-                    .replace(/[- ]/ig, " ")
-                    .split(" ")
+                    .replace(/[- ]/ig, ' ')
+                    .split(' ')
                     .map(function(val, index) {
                         return !index ? val : val.charAt(0).toUpperCase() + val.slice(1);
                     })
-                    .join("");
+                    .join('');
 
                 return properties;
             }, {});
@@ -99,16 +99,16 @@ function run() {
                 col.forEach(function(cell) {
                     var val;
 
-                    if (typeof cell.numericValue !== "undefined") {
+                    if (typeof cell.numericValue !== 'undefined') {
                         val = parseFloat(cell.numericValue);
                         hasValues = true;
-                    } else if (cell.value === "TRUE") {
+                    } else if (cell.value === 'TRUE') {
                         val = true;
                         hasValues = true;
-                    } else if (cell.value === "FALSE") {
+                    } else if (cell.value === 'FALSE') {
                         val = false;
                         hasValues = true;
-                    } else if (cell.value !== "") {
+                    } else if (cell.value !== '') {
                         val = cell.value;
                         hasValues = true;
                     }
@@ -131,7 +131,7 @@ function run() {
 
             var json = JSON.stringify(finalList, null, program.beautify ? 4 : null);
 
-            fs.writeFile(filename, json, "utf-8", function(err) {
+            fs.writeFile(filename, json, 'utf-8', function(err) {
                 if (err)
                     throw err;
                 process.exit(0);
