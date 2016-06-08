@@ -8,6 +8,9 @@
     "type": "git",
     "url": "https://github.com/bassarisse/google-spreadsheet-to-json.git"
   },
+  "scripts": {
+    "test": "mocha tests/cellsSpec.js"
+  },
   "keywords": [
     "google",
     "spreadsheet",
@@ -22,7 +25,10 @@
   "dependencies": {
     "bluebird": "^3.4.0",
     "commander": "^2.2.0",
-    "google-spreadsheet": "^0.3.0",
+    "google-spreadsheet": "^0.3.0"
+  },
+  "devDependencies": {
+    "mocha": "^2.5.3",
     "should": "^9.0.0"
   },
   "main": "index.js",
