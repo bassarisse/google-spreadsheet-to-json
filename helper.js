@@ -1,11 +1,13 @@
 var GoogleSpreadsheet = require('google-spreadsheet');
+var Promise = require('bluebird');
 
 /**
  * google spreadsheet cells into json
  */
 exports.cellsToJson = function(cells, options) {
+    
     // setting up some options, such as defining if the data is horizontal or vertical
-    options = options || {}
+    options = options || {};
 
     var rowProp = options.vertical ? 'col' : 'row';
     var colProp = options.vertical ? 'row' : 'col';
@@ -102,46 +104,48 @@ exports.cellsToJson = function(cells, options) {
     });
 
     return finalList;
-}
+};
 
 exports.spreadsheetToJson = function(options) {
-    return new Promise(function(resolve, reject) {
+    return Promise.try(function() {
 
-        var worksheetIndex = options.worksheet || 0;
-        var spreadsheetId = options.spreadsheetId;
-
-        var spreadsheet = new GoogleSpreadsheet(spreadsheetId);
+        var spreadsheet = Promise.promisifyAll(new GoogleSpreadsheet(options.spreadsheetId));
 
         if (options.token) {
+
             var tokentype = options.tokentype || 'Bearer';
+
             spreadsheet.setAuthToken({
                 value: options.token,
                 type: tokentype
             });
+
         } else if (options.user && options.password) {
-            spreadsheet.setAuth(options.user, options.password, function(err) {
-                if (err) {
-                    return reject(err)
-                }
-            });
+
+            return spreadsheet.setAuthAsync(options.user, options.password).return(spreadsheet);
+
         }
 
-        spreadsheet.getInfo(function(err, sheet_info) {
-            if (err) {
-                return reject(err)
-            }
-
-            sheet_info.worksheets[worksheetIndex].getCells(function(err, cells) {
-                if (err) {
-                    return reject(err)
-                }
-
-                var finalList = exports.cellsToJson(cells, options)
-                if (options.stringify === undefined || options.stringify === true) {
-                    finalList = JSON.stringify(finalList, null, options.beautify ? 4 : null)
-                }
-                return resolve(finalList)
-            });
-        });
+        return spreadsheet;
     })
-}
+    .then(function(spreadsheet) {
+        return spreadsheet.getInfoAsync();
+    })
+    .then(function(sheetInfo) {
+
+        var worksheetIndex = options.worksheet || 0;
+        var worksheet = Promise.promisifyAll(sheetInfo.worksheets[worksheetIndex]);
+
+        return worksheet.getCellsAsync();
+    })
+    .then(function(cells) {
+
+        var finalList = exports.cellsToJson(cells, options);
+
+        if (typeof options.stringify === 'undefined' || options.stringify === true) {
+            return JSON.stringify(finalList, null, options.beautify ? 4 : null);
+        }
+
+        return finalList;
+    });
+};
