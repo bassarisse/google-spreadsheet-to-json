@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 
+var fs = require('fs');
 var GoogleSpreadsheet = require('google-spreadsheet');
 var program = require('commander');
+var Promise = require('bluebird');
+var helper = require('./helper');
 var packageData = require('./package.json');
-var helper = require('./helper')
 
 program
     .version(packageData.version)
-    .usage('<spreadsheet-id> <file> [options]')
+    .usage('<spreadsheet-id> [file] [options]')
     .option('-u, --user [user]', 'User to login')
     .option('-p, --password [password]', 'Password to login')
     .option('-t, --token [token]', 'Auth token acquired externally')
@@ -23,13 +25,20 @@ if (program.args.length < 1) {
     program.help();
 }
 
-program.spreadsheetId = program.args[0] || program.spreadsheetId
+program.spreadsheetId = program.args[0] || program.spreadsheetId;
+
+var filename = program.args[1];
 
 helper.spreadsheetToJson(program)
 .then(function(res) {
-    console.log(res);
+
+    if (filename) {
+        return Promise.promisify(fs.writeFile)(filename, res, 'utf-8');
+    } else {
+        process.stdout.write(res);
+    }
+
 })
 .catch(function(err) {
-    console.log(err.stack);
-})
-
+    throw err;
+});
