@@ -159,10 +159,23 @@ exports.spreadsheetToJson = function(options) {
     })
     .then(function(sheetInfo) {
 
-        var worksheetIndex = options.worksheet || 0;
-        var worksheet = Promise.promisifyAll(sheetInfo.worksheets[worksheetIndex]);
+        var selectedWorksheet;
+        var worksheetIdentifier = options.worksheet;
+        if (typeof worksheetIdentifier === 'undefined')
+            worksheetIdentifier = 0;
 
-        return worksheet.getCellsAsync();
+        if (typeof worksheetIdentifier === 'number') {
+            selectedWorksheet = sheetInfo.worksheets[worksheetIdentifier];
+        } else {
+            selectedWorksheet = sheetInfo.worksheets.filter(function(worksheet) {
+                return worksheet.title === worksheetIdentifier;
+            })[0];
+        }
+
+        if (!selectedWorksheet)
+            throw new Error("No worksheet found!");
+
+        return Promise.promisifyAll(selectedWorksheet).getCellsAsync();
     })
     .then(function(cells) {
 

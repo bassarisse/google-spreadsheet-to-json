@@ -13,8 +13,8 @@ program
     .option('-p, --password <password>', 'Password to login')
     .option('-t, --token <token>', 'Auth token acquired externally')
     .option('-y, --tokentype <tokentype>', 'Type of the informed token (defaults to Bearer)')
-    .option('-w, --worksheet <n>', 'Worksheet index', parseInt)
-    .option('-c, --hash <column>', 'Column to hash the final JSON')
+    .option('-w, --worksheet <n>', 'Worksheet index or title', handlePossibleIntValue)
+    .option('-c, --hash <column>', 'Column to hash the final object')
     .option('-m, --property-mode <mode>', 'How to handle property names: "camel" (default), "pascal", "nospace" or "none"', /^(camel|pascal|nospace|none)$/i, 'camel')
     .option('-i, --vertical', 'Use the first column as header')
     .option('-l, --list-only', 'Ignore headers and just list the values in arrays')
@@ -42,3 +42,9 @@ helper.spreadsheetToJson(program)
 .catch(function(err) {
     throw err;
 });
+
+function handlePossibleIntValue(val) {
+    if (/^\d+$/.test(val))
+        return parseInt(val, 10);
+    return val;
+}
