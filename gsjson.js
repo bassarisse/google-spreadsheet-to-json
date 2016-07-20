@@ -17,7 +17,8 @@ program
     .option('-c, --hash <column>', 'Column to hash the final object')
     .option('-m, --property-mode <mode>', 'How to handle property names: "camel" (default), "pascal", "nospace" or "none"', /^(camel|pascal|nospace|none)$/i, 'camel')
     .option('-i, --vertical', 'Use the first column as header')
-    .option('-l, --list-only', 'Ignore headers and just list the values in arrays')
+    .option('-l, --list-only', 'Just list the values in arrays')
+    .option('-0, --include-header', 'Include header when using "list-only" option')
     .option('-b, --beautify', 'Beautify final JSON')
     .parse(process.argv);
 

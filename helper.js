@@ -45,6 +45,7 @@ exports.cellsToJson = function(cells, options) {
     var rowProp = options.vertical ? 'col' : 'row';
     var colProp = options.vertical ? 'row' : 'col';
     var isHashed = options.hash && !options.listOnly;
+    var includeHeaderAsValue = options.listOnly && options.includeHeader;
     var finalList = isHashed ? {} : [];
 
     // organizing (and ordering) the cells into arrays
@@ -81,9 +82,9 @@ exports.cellsToJson = function(cells, options) {
         return properties;
     }, {});
 
-    // removing first rows, before and including the one that is used as property names
+    // removing first rows, before and including (or not) the one that is used as property names
 
-    rows.splice(0, firstRowIndex + 1);
+    rows.splice(0, firstRowIndex + (includeHeaderAsValue ? 0 : 1));
 
     // iterating through remaining row to fetch the values and build the final data object
 
