@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 var fs = require('fs');
-var GoogleSpreadsheet = require('google-spreadsheet');
 var program = require('commander');
 var Promise = require('bluebird');
 var helper = require('./helper');
@@ -10,12 +9,13 @@ var packageData = require('./package.json');
 program
     .version(packageData.version)
     .usage('<spreadsheet-id> [file] [options]')
-    .option('-u, --user [user]', 'User to login')
-    .option('-p, --password [password]', 'Password to login')
-    .option('-t, --token [token]', 'Auth token acquired externally')
-    .option('-y, --tokentype [tokentype]', 'Type of the informed token (defaults to Bearer)')
+    .option('-u, --user <user>', 'User to login')
+    .option('-p, --password <password>', 'Password to login')
+    .option('-t, --token <token>', 'Auth token acquired externally')
+    .option('-y, --tokentype <tokentype>', 'Type of the informed token (defaults to Bearer)')
     .option('-w, --worksheet <n>', 'Worksheet index', parseInt)
-    .option('-c, --hash [column]', 'Column to hash the final JSON')
+    .option('-c, --hash <column>', 'Column to hash the final JSON')
+    .option('-m, --property-mode <mode>', 'How to handle property names: "camel" (default), "pascal", "nospace" or "none"', /^(camel|pascal|nospace|none)$/i, 'camel')
     .option('-i, --vertical', 'Use the first column as header')
     .option('-l, --list-only', 'Ignore headers and just list the values in arrays')
     .option('-b, --beautify', 'Beautify final JSON')

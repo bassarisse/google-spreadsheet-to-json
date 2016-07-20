@@ -1,6 +1,34 @@
 var GoogleSpreadsheet = require('google-spreadsheet');
 var Promise = require('bluebird');
 
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function getWords(phrase) {
+    return phrase.replace(/[- ]/ig, ' ').split(' ');
+}
+
+function handlePropertyName(cellValue, handleMode) {
+
+    var propertyName = (cellValue || '').trim();
+
+    if (handleMode === 'camel')
+        return getWords(propertyName.toLowerCase()).map(function(word, index) {
+            return !index ? word : capitalize(word);
+        }).join('');
+
+    if (handleMode === 'pascal')
+        return getWords(propertyName.toLowerCase()).map(function(word) {
+            return capitalize(word);
+        }).join('');
+
+    if (handleMode === 'nospace')
+        return getWords(propertyName).join('');
+    
+    return propertyName;
+}
+
 /**
  * google spreadsheet cells into json
  */
@@ -43,14 +71,7 @@ exports.cellsToJson = function(cells, options) {
         if (typeof cell.value !== 'string' || cell.value === '')
             return properties;
 
-        properties[cell[colProp]] = cell.value
-        .toLowerCase()
-        .replace(/[- ]/ig, ' ')
-        .split(' ')
-        .map(function(val, index) {
-            return !index ? val : val.charAt(0).toUpperCase() + val.slice(1);
-        })
-        .join('');
+        properties[cell[colProp]] = handlePropertyName(cell.value, options.propertyMode);
 
         return properties;
     }, {});
@@ -83,7 +104,7 @@ exports.cellsToJson = function(cells, options) {
             } else if (cell.value === 'FALSE') {
                 val = false;
                 hasValues = true;
-            } else if (cell.value !== '') {
+            } else if (cell.value !== '' && typeof cell.value !== 'undefined') {
                 val = cell.value;
                 hasValues = true;
             }
