@@ -18,20 +18,22 @@ npm install -g google-spreadsheet-to-json
 ```
 > gsjson --help
 
-  Usage: gsjson <spreadsheet-id> <file> [options]
+  Usage: gsjson <spreadsheet-id> [file] [options]
 
   Options:
 
     -h, --help                   output usage information
     -V, --version                output the version number
-    -u, --user [user]            User to login
-    -p, --password [password]    Password to login
-    -t, --token [token]          Auth token acquired externally
-    -y, --tokentype [tokentype]  Type of the informed token (defaults to Bearer)
-    -w, --worksheet <n>          Worksheet index
-    -c, --hash [column]          Column to hash the final JSON
+    -u, --user <user>            User to login
+    -p, --password <password>    Password to login
+    -t, --token <token>          Auth token acquired externally
+    -y, --tokentype <tokentype>  Type of the informed token (defaults to Bearer)
+    -w, --worksheet <n>          Worksheet index or title
+    -c, --hash <column>          Column to hash the final object
+    -m, --property-mode <mode>   How to handle property names: "camel" (default), "pascal", "nospace" or "none"
     -i, --vertical               Use the first column as header
-    -l, --list-only              Ignore headers and just list the values in arrays
+    -l, --list-only              Just list the values in arrays
+    -0, --include-header         Include header when using "list-only" option
     -b, --beautify               Beautify final JSON
 ```
 
@@ -195,6 +197,9 @@ Output:
 [{"id":1,"name":"Joisse Wendell","age":25,"newsletter":true},{"id":2,"name":"Brand Katelin","age":16,"newsletter":false},{"id":3,"name":"Gloriana Goldie","newsletter":true}]
 ```
 
+
+## Change log
+See specific file.
 
 ## License
 google-spreadsheet-to-json is free and unencumbered public domain software. For more information, see the accompanying UNLICENSE file.
