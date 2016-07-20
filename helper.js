@@ -11,9 +11,14 @@ function getWords(phrase) {
 
 function handlePropertyName(cellValue, handleMode) {
 
+    var handleModeType = typeof handleMode;
+
+    if (handleModeType === 'function')
+        return handleMode(cellValue);
+
     var propertyName = (cellValue || '').trim();
 
-    if (handleMode === 'camel')
+    if (handleMode === 'camel' || handleModeType === 'undefined')
         return getWords(propertyName.toLowerCase()).map(function(word, index) {
             return !index ? word : capitalize(word);
         }).join('');
