@@ -34,6 +34,17 @@ function handlePropertyName(cellValue, handleMode) {
     return propertyName;
 }
 
+function normalizeWorksheetIdentifiers(option) {
+
+    if (typeof option === 'undefined')
+        return [0];
+
+    if (!Array.isArray(option))
+        return [option];
+
+    return option;
+}
+
 /**
  * google spreadsheet cells into json
  */
@@ -133,18 +144,16 @@ exports.cellsToJson = function(cells, options) {
     return finalList;
 };
 
-exports.spreadsheetToJson = function(options) {
+exports.getWorksheets = function(options) {
     return Promise.try(function() {
 
         var spreadsheet = Promise.promisifyAll(new GoogleSpreadsheet(options.spreadsheetId));
 
         if (options.token) {
 
-            var tokentype = options.tokentype || 'Bearer';
-
             spreadsheet.setAuthToken({
                 value: options.token,
-                type: tokentype
+                type: options.tokentype || 'Bearer'
             });
 
         } else if (options.user && options.password) {
@@ -159,33 +168,45 @@ exports.spreadsheetToJson = function(options) {
         return spreadsheet.getInfoAsync();
     })
     .then(function(sheetInfo) {
+        return sheetInfo.worksheets.map(function(worksheet) {
+            return Promise.promisifyAll(worksheet);
+        });
+    });
+};
 
-        var selectedWorksheet;
-        var worksheetIdentifier = options.worksheet;
-        if (typeof worksheetIdentifier === 'undefined')
-            worksheetIdentifier = 0;
+exports.spreadsheetToJson = function(options) {
+    return exports.getWorksheets(options)
+    .then(function(worksheets) {
 
-        if (typeof worksheetIdentifier === 'number') {
-            selectedWorksheet = sheetInfo.worksheets[worksheetIdentifier];
-        } else {
-            selectedWorksheet = sheetInfo.worksheets.filter(function(worksheet) {
-                return worksheet.title === worksheetIdentifier;
-            })[0];
+        var identifiers = normalizeWorksheetIdentifiers(options.worksheet);
+
+        var selectedWorksheets = worksheets.filter(function(worksheet, index) {
+            return identifiers.indexOf(index) !== -1 || identifiers.indexOf(worksheet.title) !== -1;
+        });
+
+        // if an array is not passed here, expects only first result
+        if (!Array.isArray(options.worksheet)) {
+            selectedWorksheets = selectedWorksheets.slice(0, 1);
+            if (selectedWorksheets.length === 0)
+                throw new Error('No worksheet found!');
         }
 
-        if (!selectedWorksheet)
-            throw new Error("No worksheet found!");
-
-        return Promise.promisifyAll(selectedWorksheet).getCellsAsync();
+        return selectedWorksheets;
     })
-    .then(function(cells) {
+    .then(function(worksheets) {
+        return Promise.all(worksheets.map(function(worksheet) {
+            return worksheet.getCellsAsync();
+        }));
+    })
+    .then(function(results) {
 
-        var finalList = exports.cellsToJson(cells, options);
+        var finalList = results.map(function(cells) {
+            return exports.cellsToJson(cells, options);
+        });
 
-        if (typeof options.stringify === 'undefined' || options.stringify === true) {
-            return JSON.stringify(finalList, null, options.beautify ? 4 : null);
-        }
-
-        return finalList;
+        if (Array.isArray(options.worksheet))
+            return finalList;
+        else
+            return finalList[0];
     });
 };
