@@ -1,3 +1,7 @@
+# 0.3.0
+## New
+- Multiple worksheet selection
+
 # 0.2.0
 ## New
 - Node API
