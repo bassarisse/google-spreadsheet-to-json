@@ -3,20 +3,26 @@ google-spreadsheet-to-json
 
 [![NPM version](https://badge.fury.io/js/google-spreadsheet-to-json.png)](http://badge.fury.io/js/google-spreadsheet-to-json)
 
-A simple Node.js command-line tool to export Google Spreadsheets to JSON files.
+A simple tool to export Google Spreadsheets to JSON files. Can be used though Node API or command-line.
 
 
 ## Installation
 
+Command-line:
 ```
-npm install -g google-spreadsheet-to-json
+$ npm install -g google-spreadsheet-to-json
+```
+
+Node API:
+```
+$ npm install --save google-spreadsheet-to-json
 ```
 
 
 ## Help
 
 ```
-> gsjson --help
+$ gsjson --help
 
   Usage: gsjson <spreadsheet-id> [file] [options]
 
@@ -24,17 +30,17 @@ npm install -g google-spreadsheet-to-json
 
     -h, --help                   output usage information
     -V, --version                output the version number
+    -b, --beautify               Beautify final JSON
     -u, --user <user>            User to login
     -p, --password <password>    Password to login
     -t, --token <token>          Auth token acquired externally
     -y, --tokentype <tokentype>  Type of the informed token (defaults to Bearer)
-    -w, --worksheet <n>          Worksheet index or title
+    -w, --worksheet <n>          Worksheet index or title (defaults to first worksheet, can be repeated)
     -c, --hash <column>          Column to hash the final object
     -m, --property-mode <mode>   How to handle property names: "camel" (default), "pascal", "nospace" or "none"
     -i, --vertical               Use the first column as header
     -l, --list-only              Just list the values in arrays
     -0, --include-header         Include header when using "list-only" option
-    -b, --beautify               Beautify final JSON
 ```
 
 
@@ -43,41 +49,69 @@ npm install -g google-spreadsheet-to-json
 A spreadsheet ID can be extracted from its URL.
 
 
-## Usage (public Spreadsheets)
+## Usage (command-line)
 
+Public spreadsheets:
 ```
-gsjson abc123456789 data.json
+$ gsjson abc123456789 data.json
+```
+
+Private spreadsheets:
+```
+$ gsjson abc123456789 data.json -t authtoken
 ```
 
 
-## Usage (private Spreadsheets)
+## Usage (Node API)
 
-```
-gsjson abc123456789 data.json -t authtoken
+With the exception of `beautify`, the same options from the command-line applies here (options like `include-header` becomes `includeHeader`).
+
+```javascript
+var gsjson = require('google-spreadsheet-to-json');
+
+gsjson({
+    spreadsheetId: 'abc123456789',
+    // other options...
+})
+.then(function(result) {
+    console.log(result.length);
+    console.log(result);
+})
+.catch(function(err) {
+    console.log(err.message);
+    console.log(err.stack);
+});
 ```
 
 
 ## Known issues
+
+- Public spreadsheets can only be used without authentication if the option "File > Publish to the web" is used in the Google Spreadsheets GUI, even if the spreadsheet is visible to everyone. This problem won't occur when authenticated.
 
 - Since Google now enforces OAuth 2.0, this module offers an argument for the auth token. One of the methods to acquire a temporary token:
   - Access Google OAuth 2.0 Playground: https://developers.google.com/oauthplayground/
   - Enter the scope: https://spreadsheets.google.com/feeds/
   - Authorize and retrieve your access token
 
-- Public spreadsheets can only be used without authentication if the option "File > Publish to the web" is used in the Google Spreadsheets GUI, even if the spreadsheet is visible to everyone. This problem won't occur when authenticated.
-
 
 ## Example 1 (array of objects):
 
-| Id | Name | Age | Newsletter |
-| -- | ---- | --- | ---------- |
-| 1 | Joisse Wendell | 25 | TRUE |
-| 2 | Brand Katelin | 16 | FALSE |
-| 3 | Gloriana Goldie |  | TRUE |
+|Id |Name |Age |Newsletter |
+|---|-----|----|-----------|
+|1|Joisse Wendell|25|TRUE|
+|2|Brand Katelin|16|FALSE|
+|3|Gloriana Goldie||TRUE|
 
-Command:
+Command-line:
 ```
-gsjson abc123456789 data.json -b
+$ gsjson abc123456789 data.json -b
+```
+
+Node API:
+```javascript
+gsjson({
+    spreadsheetId: 'abc123456789'
+})
 ```
 
 Output:
@@ -104,54 +138,75 @@ Output:
 ```
 
 
-## Example 2 (hashed object):
+## Example 2 (hashed object, with pascal case properties):
 
-| Id | Name | Age | Newsletter |
-| -- | ---- | --- | ---------- |
-| 1 | Joisse Wendell | 25 | TRUE |
-| 2 | Brand Katelin | 16 | FALSE |
-| 3 | Gloriana Goldie |  | TRUE |
+|id |first name |last name |age |newsletter |
+|---|-----------|----------|----|-----------|
+|1|Joisse|Wendell|25|TRUE|
+|2|Brand|Katelin|16|FALSE|
+|3|Gloriana|Goldie||TRUE|
 
-Command:
+Command-line:
 ```
-gsjson abc123456789 data.json -b -c id
+$ gsjson abc123456789 data.json -b -c id -m pascal
+```
+
+Node API:
+```javascript
+gsjson({
+    spreadsheetId: 'abc123456789',
+    hash: 'id',
+    propertyMode: 'pascal'
+})
 ```
 
 Output:
 ```json
 {
     "1": {
-        "id": 1,
-        "name": "Joisse Wendell",
-        "age": 25,
-        "newsletter": true
+        "Id": 1,
+        "FirstName": "Joisse",
+        "LastName": "Wendell",
+        "Age": 25,
+        "Newsletter": true
     },
     "2": {
-        "id": 2,
-        "name": "Brand Katelin",
-        "age": 16,
-        "newsletter": false
+        "Id": 2,
+        "FirstName": "Brand",
+        "LastName": "Katelin",
+        "Age": 16,
+        "Newsletter": false
     },
     "3": {
-        "id": 3,
-        "name": "Gloriana Goldie",
-        "newsletter": true
+        "Id": 3,
+        "FirstName": "Gloriana",
+        "LastName": "Goldie",
+        "Newsletter": true
     }
 }
 ```
 
 
-## Example 3 (list of values):
+## Example 3 (list of values, selecting the second worksheet):
 
-| Id | Name | Age | Newsletter |
-| -- | ---- | --- | ---------- |
-| 1 | Joisse Wendell | 25 | TRUE |
-| 2 | Brand Katelin | 16 | FALSE |
-| 3 | Gloriana Goldie |  | TRUE |
+|Id |Name |Age |Newsletter |
+|---|-----|----|-----------|
+|1|Joisse Wendell|25|TRUE|
+|2|Brand Katelin|16|FALSE|
+|3|Gloriana Goldie||TRUE|
 
-Command:
+Command-line:
 ```
-gsjson abc123456789 data.json -b -l
+$ gsjson abc123456789 data.json -b -l -w 1
+```
+
+Node API:
+```javascript
+gsjson({
+    spreadsheetId: 'abc123456789',
+    listOnly: true,
+    worksheet: 1
+})
 ```
 
 Output:
@@ -179,17 +234,73 @@ Output:
 ```
 
 
-## Example 4 (vertical data, without beautifying):
+## Example 4 (selecting multiple worksheets by title):
 
-| Id | 1 | 2 | 3 |
-| -- | - | - | - |
-| Name | Joisse Wendell | Brand Katelin | Gloriana Goldie |
-| Age | 25 | 16 |  |
-| Newsletter | TRUE | FALSE | TRUE |
+|Id |Name |Dead |
+|---|-----|-----|
+|1|Jon Snow|FALSE|
+|2|Hodor|FALSE|
 
-Command:
+|Id |Saint |Main Attack |
+|---|------|------------|
+|1|Seiya|Pegasus Ryu Sei Ken|
+|2|Ikki|Hoyoku Tensho|
+
+Command-line:
 ```
-gsjson abc123456789 data.json -i
+$ gsjson abc123456789 data.json -i -w "Game Of Thrones" -w "Saint Seiya"
+```
+
+Node API:
+```javascript
+gsjson({
+    spreadsheetId: 'abc123456789',
+    worksheet: ['Game Of Thrones', 'Saint Seiya']
+})
+```
+
+Output:
+```json
+[
+    [
+        {
+            "id": 1,
+            "name": "Jon Snow",
+            "dead": false
+        },
+        {
+            "id": 2,
+            "name": "Hodor",
+            "dead": false
+        }
+    ],
+    [
+        {
+            "id": 1,
+            "saint": "Seiya",
+            "mainAttack": "Pegasus Ryu Sei Ken"
+        },
+        {
+            "id": 2,
+            "saint": "Ikki",
+            "mainAttack": "Hoyoku Tensho"
+        }
+    ]
+]
+```
+
+
+## Example 5 (vertical data, without beautifying):
+
+|Id |1  |2  |3  |
+|---|---|---|---|
+|Name|Joisse Wendell|Brand Katelin|Gloriana Goldie|
+|Age|25|16||
+|Newsletter|TRUE|FALSE|TRUE|
+
+Command-line:
+```
+$ gsjson abc123456789 data.json -i
 ```
 
 Output:
