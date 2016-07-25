@@ -61,6 +61,11 @@ Private spreadsheets:
 $ gsjson abc123456789 data.json -t authtoken
 ```
 
+You can also redirect the output if you omit the filename:
+```
+$ gsjson abc123456789 -t authtoken >> data.json
+```
+
 
 ## Usage (Node API)
 
@@ -248,7 +253,7 @@ Output:
 
 Command-line:
 ```
-$ gsjson abc123456789 data.json -i -w "Game Of Thrones" -w "Saint Seiya"
+$ gsjson abc123456789 data.json -b -w "Game Of Thrones" -w "Saint Seiya"
 ```
 
 Node API:
