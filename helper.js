@@ -189,11 +189,14 @@ exports.getWorksheets = function(options) {
 
 exports.spreadsheetToJson = function(options) {
 
-    // if an array is not passed here, expects only first result
-    var expectMultipleWorksheets = Array.isArray(options.worksheet)
+    var allWorksheets = !!options.allWorksheets
+    var expectMultipleWorksheets = allWorksheets || Array.isArray(options.worksheet)
 
     return exports.getWorksheets(options)
     .then(function(worksheets) {
+
+        if (allWorksheets)
+            return worksheets
 
         var identifiers = normalizeWorksheetIdentifiers(options.worksheet)
 

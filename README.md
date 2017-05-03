@@ -35,6 +35,7 @@ Options:
   -t, --token <token>          Auth token acquired externally
   -y, --tokentype <tokentype>  Type of the informed token (defaults to Bearer)
   -w, --worksheet <n>          Worksheet index or title (defaults to first worksheet, can be repeated)
+  -a, --all-worksheets         Return all worksheets (worksheet option is ignored)
   -c, --hash <column>          Column to hash the final object
   -m, --property-mode <mode>   How to handle property names: "camel" (default), "pascal", "nospace" or "none"
   -i, --vertical               Use the first column as header

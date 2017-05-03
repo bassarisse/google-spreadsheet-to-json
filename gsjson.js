@@ -14,6 +14,7 @@ program
     .option('-t, --token <token>', 'Auth token acquired externally')
     .option('-y, --tokentype <tokentype>', 'Type of the informed token (defaults to Bearer)')
     .option('-w, --worksheet <n>', 'Worksheet index or title (defaults to first worksheet, can be repeated)', handleWorksheetIdentifiers)
+    .option('-a, --all-worksheets', 'Return all worksheets (worksheet option is ignored)')
     .option('-c, --hash <column>', 'Column to hash the final object')
     .option('-m, --property-mode <mode>', 'How to handle property names: "camel" (default), "pascal", "nospace" or "none"', /^(camel|pascal|nospace|none)$/i, 'camel')
     .option('-i, --vertical', 'Use the first column as header')

@@ -1,6 +1,7 @@
 # Next
 ## New
 - Service Account auth support
+- Option to return all worksheets
 
 ## Changes
 - Removed user/password auth method (BREAKING)
