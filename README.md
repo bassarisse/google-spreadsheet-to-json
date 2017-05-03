@@ -24,21 +24,22 @@ $ npm install --save google-spreadsheet-to-json
 ```
 $ gsjson --help
 
-  Usage: gsjson <spreadsheet-id> [file] [options]
+Usage: gsjson <spreadsheet-id> [file] [options]
 
-  Options:
+Options:
 
-    -h, --help                   output usage information
-    -V, --version                output the version number
-    -b, --beautify               Beautify final JSON
-    -t, --token <token>          Auth token acquired externally
-    -y, --tokentype <tokentype>  Type of the informed token (defaults to Bearer)
-    -w, --worksheet <n>          Worksheet index or title (defaults to first worksheet, can be repeated)
-    -c, --hash <column>          Column to hash the final object
-    -m, --property-mode <mode>   How to handle property names: "camel" (default), "pascal", "nospace" or "none"
-    -i, --vertical               Use the first column as header
-    -l, --list-only              Just list the values in arrays
-    -0, --include-header         Include header when using "list-only" option
+  -h, --help                   output usage information
+  -V, --version                output the version number
+  -b, --beautify               Beautify final JSON
+  -s, --credentials <string>   Service Account credentials JSON data or file path
+  -t, --token <token>          Auth token acquired externally
+  -y, --tokentype <tokentype>  Type of the informed token (defaults to Bearer)
+  -w, --worksheet <n>          Worksheet index or title (defaults to first worksheet, can be repeated)
+  -c, --hash <column>          Column to hash the final object
+  -m, --property-mode <mode>   How to handle property names: "camel" (default), "pascal", "nospace" or "none"
+  -i, --vertical               Use the first column as header
+  -l, --list-only              Just list the values in arrays
+  -0, --include-header         Include header when using "list-only" option
 ```
 
 
@@ -56,12 +57,13 @@ $ gsjson abc123456789 data.json
 
 Private spreadsheets:
 ```
+$ gsjson abc123456789 data.json -s creds.json
 $ gsjson abc123456789 data.json -t authtoken
 ```
 
 You can also redirect the output if you omit the filename:
 ```
-$ gsjson abc123456789 -t authtoken >> data.json
+$ gsjson abc123456789 >> data.json
 ```
 
 
@@ -87,16 +89,23 @@ gsjson({
 ```
 
 
+## About authentication
+
+Since Google enforces OAuth 2.0, this module offers arguments for Service Account JSON credentials or an auth token.
+
+The `credentials` option can receive a file path, the JSON data (string) or an object (on Node API).
+
+For quick tests, there's a method to acquire a temporary token:
+- Access Google OAuth 2.0 Playground: https://developers.google.com/oauthplayground/
+- Enter the scope: https://spreadsheets.google.com/feeds/
+- Authorize and retrieve your access token
+
+For more detailed information regarding auth methods: https://github.com/theoephraim/node-google-spreadsheet
+
+
 ## Known issues
 
 - Public spreadsheets can only be used without authentication if the option "File > Publish to the web" is used in the Google Spreadsheets GUI, even if the spreadsheet is visible to everyone. This problem won't occur when authenticated.
-
-- Since Google now enforces OAuth 2.0, this module offers an argument for the auth token. One of the methods to acquire a temporary token:
-  - Access Google OAuth 2.0 Playground: https://developers.google.com/oauthplayground/
-  - Enter the scope: https://spreadsheets.google.com/feeds/
-  - Authorize and retrieve your access token
-
-- For more detailed information regarding auth methods: https://github.com/theoephraim/node-google-spreadsheet
 
 
 ## Example 1 (array of objects):

@@ -1,3 +1,5 @@
+
+var fs = require('fs')
 var GoogleSpreadsheet = require('google-spreadsheet')
 var Promise = require('bluebird')
 
@@ -7,6 +9,21 @@ function capitalize(str) {
 
 function getWords(phrase) {
     return phrase.replace(/[- ]/ig, ' ').split(' ')
+}
+
+// Service Account credentials are first parsed as JSON and, in case this fails,
+// they are required literally, as a file path
+function parseServiceAccountCredentials(credentials) {
+
+    if (typeof credentials === 'string') {
+        try {
+            return JSON.parse(credentials)
+        } catch(ex) {
+            return JSON.parse(fs.readFileSync(credentials, 'utf8'))
+        }
+    }
+
+    return credentials
 }
 
 function handlePropertyName(cellValue, handleMode) {
@@ -34,6 +51,7 @@ function handlePropertyName(cellValue, handleMode) {
     return propertyName
 }
 
+// should always return an array
 function normalizeWorksheetIdentifiers(option) {
 
     if (typeof option === 'undefined')
@@ -45,9 +63,7 @@ function normalizeWorksheetIdentifiers(option) {
     return option
 }
 
-/**
- * google spreadsheet cells into json
- */
+// google spreadsheet cells into json
 exports.cellsToJson = function(cells, options) {
 
     // setting up some options, such as defining if the data is horizontal or vertical
@@ -149,13 +165,14 @@ exports.getWorksheets = function(options) {
 
         var spreadsheet = Promise.promisifyAll(new GoogleSpreadsheet(options.spreadsheetId))
 
-        if (options.token) {
+        if (options.credentials)
+            return spreadsheet.useServiceAccountAuthAsync(parseServiceAccountCredentials(options.credentials)).return(spreadsheet)
 
+        if (options.token) {
             spreadsheet.setAuthToken({
                 value: options.token,
                 type: options.tokentype || 'Bearer'
             })
-
         }
 
         return spreadsheet
@@ -171,6 +188,10 @@ exports.getWorksheets = function(options) {
 }
 
 exports.spreadsheetToJson = function(options) {
+
+    // if an array is not passed here, expects only first result
+    var expectMultipleWorksheets = Array.isArray(options.worksheet)
+
     return exports.getWorksheets(options)
     .then(function(worksheets) {
 
@@ -180,12 +201,11 @@ exports.spreadsheetToJson = function(options) {
             return identifiers.indexOf(index) !== -1 || identifiers.indexOf(worksheet.title) !== -1
         })
 
-        // if an array is not passed here, expects only first result
-        if (!Array.isArray(options.worksheet)) {
+        if (!expectMultipleWorksheets)
             selectedWorksheets = selectedWorksheets.slice(0, 1)
-            if (selectedWorksheets.length === 0)
-                throw new Error('No worksheet found!')
-        }
+
+        if (selectedWorksheets.length === 0)
+            throw new Error('No worksheet found!')
 
         return selectedWorksheets
     })
@@ -200,9 +220,6 @@ exports.spreadsheetToJson = function(options) {
             return exports.cellsToJson(cells, options)
         })
 
-        if (Array.isArray(options.worksheet))
-            return finalList
-        else
-            return finalList[0]
+        return expectMultipleWorksheets ? finalList : finalList[0]
     })
 }

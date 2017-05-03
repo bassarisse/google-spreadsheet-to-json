@@ -1,6 +1,9 @@
 # Next
+## New
+- Service Account auth support
+
 ## Changes
-- Removed user/password auth method
+- Removed user/password auth method (BREAKING)
 
 # 0.3.0
 ## New

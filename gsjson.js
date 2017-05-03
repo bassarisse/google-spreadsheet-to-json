@@ -10,6 +10,7 @@ program
     .version(packageData.version)
     .usage('<spreadsheet-id> [file] [options]')
     .option('-b, --beautify', 'Beautify final JSON')
+    .option('-s, --credentials <string>', 'Service Account credentials JSON data or file path')
     .option('-t, --token <token>', 'Auth token acquired externally')
     .option('-y, --tokentype <tokentype>', 'Type of the informed token (defaults to Bearer)')
     .option('-w, --worksheet <n>', 'Worksheet index or title (defaults to first worksheet, can be repeated)', handleWorksheetIdentifiers)
