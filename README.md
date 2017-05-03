@@ -3,7 +3,7 @@ google-spreadsheet-to-json
 
 [![NPM version](https://badge.fury.io/js/google-spreadsheet-to-json.png)](http://badge.fury.io/js/google-spreadsheet-to-json)
 
-A simple tool to export Google Spreadsheets to JSON files. Can be used though Node API or command-line.
+A simple tool to export Google Spreadsheets to JSON files. Can be used though Node API or CLI.
 
 
 ## Installation
@@ -44,12 +44,7 @@ Options:
 ```
 
 
-### Note
-
-A spreadsheet ID can be extracted from its URL.
-
-
-## Usage (command-line)
+## Usage (CLI)
 
 Public spreadsheets:
 ```
@@ -70,7 +65,7 @@ $ gsjson abc123456789 >> data.json
 
 ## Usage (Node API)
 
-With the exception of `beautify`, the same options from the command-line applies here (options like `include-header` becomes `includeHeader`).
+With the exception of `beautify`, the same options from the CLI applies here (options like `include-header` becomes `includeHeader`).
 
 ```javascript
 var gsjson = require('google-spreadsheet-to-json');
@@ -88,6 +83,12 @@ gsjson({
     console.log(err.stack);
 });
 ```
+
+
+### Notes
+
+- A spreadsheet ID can be extracted from its URL.
+- If an array is passed on the `worksheet` option (in CLI, this can be done by repeating the argument) or the `allWorksheets` option is used, the output from each worksheet is returned inside an array (the order is not guaranteed).
 
 
 ## About authentication
