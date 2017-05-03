@@ -9,7 +9,7 @@
     "url": "https://github.com/bassarisse/google-spreadsheet-to-json.git"
   },
   "scripts": {
-    "test": "mocha tests/cellsSpec.js"
+    "test": "mocha tests/**/*.js"
   },
   "keywords": [
     "google",
