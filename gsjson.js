@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-var fs = require('fs');
-var program = require('commander');
-var Promise = require('bluebird');
-var helper = require('./helper');
-var packageData = require('./package.json');
+var fs = require('fs')
+var program = require('commander')
+var Promise = require('bluebird')
+var helper = require('./helper')
+var packageData = require('./package.json')
 
 program
     .version(packageData.version)
@@ -18,51 +18,51 @@ program
     .option('-i, --vertical', 'Use the first column as header')
     .option('-l, --list-only', 'Just list the values in arrays')
     .option('-0, --include-header', 'Include header when using "list-only" option')
-    .parse(process.argv);
+    .parse(process.argv)
 
 if (program.args.length < 1) {
-    program.help();
+    program.help()
 }
 
-program.spreadsheetId = program.args[0] || program.spreadsheetId;
+program.spreadsheetId = program.args[0] || program.spreadsheetId
 
-var filename = program.args[1];
+var filename = program.args[1]
 
 helper.spreadsheetToJson(program)
 .then(function(result) {
-    return JSON.stringify(result, null, program.beautify ? 4 : null);
+    return JSON.stringify(result, null, program.beautify ? 4 : null)
 })
 .then(function(result) {
 
     if (filename) {
-        return Promise.promisify(fs.writeFile)(filename, result, 'utf-8');
+        return Promise.promisify(fs.writeFile)(filename, result, 'utf-8')
     } else {
-        process.stdout.write(result);
+        process.stdout.write(result)
     }
 
 })
 .catch(function(err) {
-    throw err;
-});
+    throw err
+})
 
 function handlePossibleIntValue(val) {
     if (/^\d+$/.test(val))
-        return parseInt(val, 10);
-    return val;
+        return parseInt(val, 10)
+    return val
 }
 
 function handleWorksheetIdentifiers(val, memo) {
 
-    var identifier = handlePossibleIntValue(val);
+    var identifier = handlePossibleIntValue(val)
 
-    if (typeof memo !== "undefined") {
+    if (typeof memo !== 'undefined') {
         if (Array.isArray(memo)) {
-            memo.push(identifier);
-            return memo;
+            memo.push(identifier)
+            return memo
         } else {
-            return [memo, identifier];
+            return [memo, identifier]
         }
     }
 
-    return identifier;
+    return identifier
 }

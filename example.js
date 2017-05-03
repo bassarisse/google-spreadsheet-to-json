@@ -5,9 +5,9 @@ gsjson({
     token: 'token'
 })
 .then(function(res) {
-    console.log(res);
-    console.log(res.length);
+    console.log(res)
+    console.log(res.length)
 })
 .catch(function(err) {
-    console.log(err.stack);
+    console.log(err.stack)
 })

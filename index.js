@@ -1,5 +1,5 @@
-var helper = require('./helper');
+var helper = require('./helper')
 
 module.exports = function(options) {
-    return helper.spreadsheetToJson(options);
-};
+    return helper.spreadsheetToJson(options)
+}
