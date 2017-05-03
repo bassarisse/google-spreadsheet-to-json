@@ -31,8 +31,6 @@ $ gsjson --help
     -h, --help                   output usage information
     -V, --version                output the version number
     -b, --beautify               Beautify final JSON
-    -u, --user <user>            User to login
-    -p, --password <password>    Password to login
     -t, --token <token>          Auth token acquired externally
     -y, --tokentype <tokentype>  Type of the informed token (defaults to Bearer)
     -w, --worksheet <n>          Worksheet index or title (defaults to first worksheet, can be repeated)
@@ -97,6 +95,8 @@ gsjson({
   - Access Google OAuth 2.0 Playground: https://developers.google.com/oauthplayground/
   - Enter the scope: https://spreadsheets.google.com/feeds/
   - Authorize and retrieve your access token
+
+- For more detailed information regarding auth methods: https://github.com/theoephraim/node-google-spreadsheet
 
 
 ## Example 1 (array of objects):

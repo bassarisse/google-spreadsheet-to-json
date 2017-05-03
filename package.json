@@ -23,13 +23,13 @@
     "node": ">=0.10"
   },
   "dependencies": {
-    "bluebird": "^3.4.0",
-    "commander": "^2.2.0",
-    "google-spreadsheet": "^0.3.0"
+    "bluebird": "^3.5.0",
+    "commander": "^2.9.0",
+    "google-spreadsheet": "^2.0.3"
   },
   "devDependencies": {
-    "mocha": "^2.5.3",
-    "should": "^9.0.0"
+    "mocha": "^3.3.0",
+    "should": "^11.2.1"
   },
   "main": "index.js",
   "bin": {

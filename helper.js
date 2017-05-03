@@ -156,10 +156,6 @@ exports.getWorksheets = function(options) {
                 type: options.tokentype || 'Bearer'
             });
 
-        } else if (options.user && options.password) {
-
-            return spreadsheet.setAuthAsync(options.user, options.password).return(spreadsheet);
-
         }
 
         return spreadsheet;

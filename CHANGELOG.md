@@ -1,3 +1,7 @@
+# Next
+## Changes
+- Removed user/password auth method
+
 # 0.3.0
 ## New
 - Multiple worksheet selection
