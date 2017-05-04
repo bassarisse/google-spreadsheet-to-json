@@ -2,7 +2,7 @@
 ## New
 - Service Account auth support
 - Option to return all worksheets
-- Option to ignore columns or rows
+- Options to ignore columns or rows
 
 ## Changes
 - Removed user/password auth method (BREAKING)

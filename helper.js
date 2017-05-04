@@ -115,10 +115,15 @@ exports.cellsToJson = function(allCells, options) {
     // organizing (and ordering) the cells into arrays
 
     var rows = allCells.reduce(function(rows, cell) {
+
+        if (ignoredRows.indexOf(cell.row) !== -1 || ignoredCols.indexOf(cell.col) !== -1)
+            return rows
+
         var rowIndex = cell[rowProp] - 1
         if (typeof rows[rowIndex] === 'undefined')
             rows[rowIndex] = []
         rows[rowIndex].push(cell)
+
         return rows
     }, [])
 
@@ -139,10 +144,7 @@ exports.cellsToJson = function(allCells, options) {
 
     var properties = (rows[firstRowIndex] || []).reduce(function(properties, cell) {
 
-        if (ignoredRows.indexOf(cell.row) !== -1 ||
-            ignoredCols.indexOf(cell.col) !== -1 ||
-            typeof cell.value !== 'string' ||
-            cell.value === '')
+        if (typeof cell.value !== 'string' || cell.value === '')
             return properties
 
         properties[cell[colProp]] = handlePropertyName(cell.value, options.propertyMode)
@@ -152,7 +154,8 @@ exports.cellsToJson = function(allCells, options) {
 
     // removing first rows, before and including (or not) the one that is used as property names
 
-    rows.splice(0, firstRowIndex + (includeHeaderAsValue ? 0 : 1))
+    if (!includeHeaderAsValue)
+        rows.splice(0, firstRowIndex + 1)
 
     // iterating through remaining row to fetch the values and build the final data object
 
@@ -162,10 +165,6 @@ exports.cellsToJson = function(allCells, options) {
         var hasValues = false
 
         cells.forEach(function(cell) {
-
-            if (ignoredRows.indexOf(cell.row) !== -1 ||
-                ignoredCols.indexOf(cell.col) !== -1)
-                return
 
             var val
             var colNumber = cell[colProp]
