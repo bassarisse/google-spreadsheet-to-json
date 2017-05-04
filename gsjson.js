@@ -10,16 +10,18 @@ program
     .version(packageData.version)
     .usage('<spreadsheet-id> [file] [options]')
     .option('-b, --beautify', 'Beautify final JSON')
-    .option('-s, --credentials <string>', 'Service Account credentials JSON data or file path')
+    .option('-s, --credentials <s>', 'Service Account credentials JSON data or file path')
     .option('-t, --token <token>', 'Auth token acquired externally')
     .option('-y, --tokentype <tokentype>', 'Type of the informed token (defaults to Bearer)')
-    .option('-w, --worksheet <n>', 'Worksheet index or title (defaults to first worksheet, can be repeated)', handleWorksheetIdentifiers)
+    .option('-w, --worksheet <n>', 'Worksheet index or title (defaults to first worksheet, can be repeated)', handlePossibleIntList)
     .option('-a, --all-worksheets', 'Return all worksheets (worksheet option is ignored)')
     .option('-c, --hash <column>', 'Column to hash the final object')
     .option('-m, --property-mode <mode>', 'How to handle property names: "camel" (default), "pascal", "nospace" or "none"', /^(camel|pascal|nospace|none)$/i, 'camel')
     .option('-i, --vertical', 'Use the first column as header')
     .option('-l, --list-only', 'Just list the values in arrays')
     .option('-0, --include-header', 'Include header when using "list-only" option')
+    .option('--ignore-col <n>', 'Column name (Excel-like labels) to be ignored (can be repeated, number are also supported)', handlePossibleIntList)
+    .option('--ignore-row <n>', 'Row number to be ignored (can be repeated)', handlePossibleIntList)
     .parse(process.argv)
 
 if (program.args.length < 1) {
@@ -53,18 +55,20 @@ function handlePossibleIntValue(val) {
     return val
 }
 
-function handleWorksheetIdentifiers(val, memo) {
+function handlePossibleIntList(val, memo) {
+    return handlePossibleList(handlePossibleIntValue(val), memo)
+}
 
-    var identifier = handlePossibleIntValue(val)
+function handlePossibleList(val, memo) {
 
     if (typeof memo !== 'undefined') {
         if (Array.isArray(memo)) {
-            memo.push(identifier)
+            memo.push(val)
             return memo
         } else {
-            return [memo, identifier]
+            return [memo, val]
         }
     }
 
-    return identifier
+    return val
 }

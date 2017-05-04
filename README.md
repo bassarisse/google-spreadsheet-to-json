@@ -31,7 +31,7 @@ Options:
   -h, --help                   output usage information
   -V, --version                output the version number
   -b, --beautify               Beautify final JSON
-  -s, --credentials <string>   Service Account credentials JSON data or file path
+  -s, --credentials <s>        Service Account credentials JSON data or file path
   -t, --token <token>          Auth token acquired externally
   -y, --tokentype <tokentype>  Type of the informed token (defaults to Bearer)
   -w, --worksheet <n>          Worksheet index or title (defaults to first worksheet, can be repeated)
@@ -41,6 +41,8 @@ Options:
   -i, --vertical               Use the first column as header
   -l, --list-only              Just list the values in arrays
   -0, --include-header         Include header when using "list-only" option
+  --ignore-col <n>             Column name (Excel-like labels) to be ignored (can be repeated, number are also supported)
+  --ignore-row <n>             Row number to be ignored (can be repeated)
 ```
 
 

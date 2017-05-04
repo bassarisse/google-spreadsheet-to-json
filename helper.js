@@ -3,6 +3,10 @@ var fs = require('fs')
 var GoogleSpreadsheet = require('google-spreadsheet')
 var Promise = require('bluebird')
 
+// constants used for converting column names into number/index
+var ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
+var ALPHABET_BASE = ALPHABET.length
+
 function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1)
 }
@@ -57,14 +61,44 @@ function normalizeWorksheetIdentifiers(option) {
     if (typeof option === 'undefined')
         return [0]
 
-    if (!Array.isArray(option))
-        return [option]
+    return Array.isArray(option) ? option : [option]
+}
 
-    return option
+// should always return an array
+function normalizeList(option) {
+
+    if (typeof option === 'undefined')
+        return []
+
+    return Array.isArray(option) ? option : [option]
+}
+
+function parseColIdentifier(col) {
+
+    var colType = typeof col
+
+    if (colType === 'string') {
+        return col.trim().replace(/[ \.]/i, '').toLowerCase().split('').reverse().reduce(function(totalValue, letter, index) {
+
+            var alphaIndex = ALPHABET.indexOf(letter)
+
+            if (alphaIndex === -1)
+                throw new Error('Column identifier format is invalid')
+
+            var value = alphaIndex + 1
+
+            return totalValue + value * Math.pow(ALPHABET_BASE, index)
+        }, 0)
+    }
+
+    if (colType !== 'number')
+        throw new Error('Column identifier value type is invalid')
+
+    return col
 }
 
 // google spreadsheet cells into json
-exports.cellsToJson = function(cells, options) {
+exports.cellsToJson = function(allCells, options) {
 
     // setting up some options, such as defining if the data is horizontal or vertical
     options = options || {}
@@ -74,10 +108,13 @@ exports.cellsToJson = function(cells, options) {
     var isHashed = options.hash && !options.listOnly
     var includeHeaderAsValue = options.listOnly && options.includeHeader
     var finalList = isHashed ? {} : []
+    var ignoredRows = normalizeList(options.ignoreRow)
+    var ignoredCols = normalizeList(options.ignoreCol).map(parseColIdentifier)
+    var ignoredDataNumbers = options.vertical ? ignoredRows : ignoredCols
 
     // organizing (and ordering) the cells into arrays
 
-    var rows = cells.reduce(function(rows, cell) {
+    var rows = allCells.reduce(function(rows, cell) {
         var rowIndex = cell[rowProp] - 1
         if (typeof rows[rowIndex] === 'undefined')
             rows[rowIndex] = []
@@ -101,7 +138,11 @@ exports.cellsToJson = function(cells, options) {
     // creating the property names map (to detect the name by index)
 
     var properties = (rows[firstRowIndex] || []).reduce(function(properties, cell) {
-        if (typeof cell.value !== 'string' || cell.value === '')
+
+        if (ignoredRows.indexOf(cell.row) !== -1 ||
+            ignoredCols.indexOf(cell.col) !== -1 ||
+            typeof cell.value !== 'string' ||
+            cell.value === '')
             return properties
 
         properties[cell[colProp]] = handlePropertyName(cell.value, options.propertyMode)
@@ -121,6 +162,10 @@ exports.cellsToJson = function(cells, options) {
         var hasValues = false
 
         cells.forEach(function(cell) {
+
+            if (ignoredRows.indexOf(cell.row) !== -1 ||
+                ignoredCols.indexOf(cell.col) !== -1)
+                return
 
             var val
             var colNumber = cell[colProp]
@@ -142,18 +187,28 @@ exports.cellsToJson = function(cells, options) {
                 hasValues = true
             }
 
-            if (options.listOnly)
+            if (options.listOnly) {
                 newObject[colNumber - 1] = val
-            else
+            } else {
                 newObject[properties[colNumber]] = val
+            }
+
         })
 
         if (hasValues) {
+
+            if (options.listOnly) {
+                ignoredDataNumbers.forEach(function(number) {
+                    newObject.splice(number - 1, 1)
+                })
+            }
+
             if (isHashed) {
                 finalList[newObject[options.hash]] = newObject
             } else {
                 finalList.push(newObject)
             }
+
         }
     })
 
@@ -219,8 +274,8 @@ exports.spreadsheetToJson = function(options) {
     })
     .then(function(results) {
 
-        var finalList = results.map(function(cells) {
-            return exports.cellsToJson(cells, options)
+        var finalList = results.map(function(allCells) {
+            return exports.cellsToJson(allCells, options)
         })
 
         return expectMultipleWorksheets ? finalList : finalList[0]
