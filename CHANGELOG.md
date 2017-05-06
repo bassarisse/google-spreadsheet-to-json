@@ -1,4 +1,4 @@
-# Next
+# 1.0.0
 ## New
 - Service Account auth support
 - Option to return all worksheets
