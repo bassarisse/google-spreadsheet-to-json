@@ -16,7 +16,7 @@ function getWords(phrase) {
 }
 
 // Service Account credentials are first parsed as JSON and, in case this fails,
-// they are required literally, as a file path
+// they are considered a file path
 function parseServiceAccountCredentials(credentials) {
 
     if (typeof credentials === 'string') {
@@ -55,22 +55,43 @@ function handlePropertyName(cellValue, handleMode) {
     return propertyName
 }
 
+function handleIntValue(val) {
+    return parseInt(val, 10) || 0
+}
+
+// returns a number if the string can be parsed as an integer
+function handlePossibleIntValue(val) {
+    if (typeof val === 'string' && /^\d+$/.test(val))
+        return handleIntValue(val)
+    return val
+}
+
+function normalizePossibleIntList(option, defaultValue) {
+    return normalizeList(option, defaultValue).map(handlePossibleIntValue)
+}
+
 // should always return an array
-function normalizeWorksheetIdentifiers(option) {
+function normalizeList(option, defaultValue) {
 
     if (typeof option === 'undefined')
-        return [0]
+        return defaultValue || []
 
     return Array.isArray(option) ? option : [option]
 }
 
-// should always return an array
-function normalizeList(option) {
+function setPropertyTree(object, tree, value) {
 
-    if (typeof option === 'undefined')
-        return []
+    if (!Array.isArray(tree))
+        tree = [tree]
 
-    return Array.isArray(option) ? option : [option]
+    var prop = tree[0]
+    if (!prop)
+        return
+
+    object[prop] = tree.length === 1 ? value : (typeof object[prop] === 'object' ? object[prop] : {})
+
+    setPropertyTree(object[prop], tree.slice(1), value)
+
 }
 
 function parseColIdentifier(col) {
@@ -97,6 +118,10 @@ function parseColIdentifier(col) {
     return col
 }
 
+function cellIsValid(cell) {
+    return !!cell && typeof cell.value === 'string' && cell.value !== ''
+}
+
 // google spreadsheet cells into json
 exports.cellsToJson = function(allCells, options) {
 
@@ -107,25 +132,32 @@ exports.cellsToJson = function(allCells, options) {
     var colProp = options.vertical ? 'row' : 'col'
     var isHashed = options.hash && !options.listOnly
     var includeHeaderAsValue = options.listOnly && options.includeHeader
-    var finalList = isHashed ? {} : []
-    var ignoredRows = normalizeList(options.ignoreRow)
-    var ignoredCols = normalizeList(options.ignoreCol).map(parseColIdentifier)
+    var headerStartNumber = options.headerStart ? parseColIdentifier(options.headerStart) : 0
+    var headerSize = Math.min(handleIntValue(options.headerSize)) || 1
+    var ignoredRows = normalizePossibleIntList(options.ignoreRow)
+    var ignoredCols = normalizePossibleIntList(options.ignoreCol).map(parseColIdentifier)
     var ignoredDataNumbers = options.vertical ? ignoredRows : ignoredCols
+    ignoredDataNumbers.sort().reverse()
+
+    var maxCol = 0
 
     // organizing (and ordering) the cells into arrays
 
-    var rows = allCells.reduce(function(rows, cell) {
+    var rows = []
+
+    allCells.forEach(function(cell) {
 
         if (ignoredRows.indexOf(cell.row) !== -1 || ignoredCols.indexOf(cell.col) !== -1)
-            return rows
+            return
+
+        maxCol = Math.max(maxCol, cell[colProp])
 
         var rowIndex = cell[rowProp] - 1
         if (typeof rows[rowIndex] === 'undefined')
             rows[rowIndex] = []
         rows[rowIndex].push(cell)
 
-        return rows
-    }, [])
+    })
 
     rows.forEach(function(col) {
         col.sort(function(cell1, cell2) {
@@ -133,31 +165,102 @@ exports.cellsToJson = function(allCells, options) {
         })
     })
 
-    // find the first row with data to use it as property names
+    // find the first row with data (or the specified header start line) to use it as property names
 
     for (var firstRowIndex = 0; firstRowIndex < rows.length; firstRowIndex++) {
-        if (rows[firstRowIndex])
-            break
+        var cells = rows[firstRowIndex]
+
+        if (!cells)
+            continue
+
+        if (headerStartNumber && headerStartNumber !== cells[0][rowProp])
+            continue
+
+        break
     }
 
-    // creating the property names map (to detect the name by index)
+    var properties
 
-    var properties = (rows[firstRowIndex] || []).reduce(function(properties, cell) {
+    if (!options.listOnly) {
 
-        if (typeof cell.value !== 'string' || cell.value === '')
-            return properties
+        // creating the property names map (to detect the name by index),
+        // considering the header size
 
-        properties[cell[colProp]] = handlePropertyName(cell.value, options.propertyMode)
+        properties = {}
+        var headerEndRowIndex = firstRowIndex + headerSize - 1
 
-        return properties
-    }, {})
+        var headerRows = rows.filter(function(row, index) {
+            return index >= firstRowIndex && index <= headerEndRowIndex
+        }).reverse()
 
-    // removing first rows, before and including (or not) the one that is used as property names
+        for (var colNumber = 1; colNumber <= maxCol; colNumber++) {
 
+            var foundFirstCell = false
+
+            var propertyMap = headerRows.map(function (row, index) {
+
+                var headerCell = row.filter(function(cell) {
+                    return cell[colProp] === colNumber
+                })[0]
+
+                if (!foundFirstCell && cellIsValid(headerCell))
+                    foundFirstCell = true
+
+                // the first header cell (from the bottom to top) must be from this column,
+                // so we don't check to the left
+
+                else if (foundFirstCell && !cellIsValid(headerCell)) {
+
+                    // finding the nearest filled cell to the left
+                    headerCell = row.filter(function(cell) {
+                        return cell[colProp] < colNumber
+                    }).reverse()[0]
+
+                    if (cellIsValid(headerCell)) {
+                        // then we check if the cell found has other filled cells below,
+                        // and ignore it if not
+
+                        var hasCellBelow = headerRows.filter(function (r, i) {
+                            return i === index - 1
+                        }).some(function(r) {
+                            return cellIsValid(r.filter(function(cell) {
+                                return cell[colProp] === headerCell[colProp]
+                            })[0])
+                        })
+
+                        if (!hasCellBelow)
+                            headerCell = null
+
+                    }
+                }
+
+                return headerCell
+
+            }).map(function(cell) {
+
+                if (!cellIsValid(cell))
+                    return
+
+                return handlePropertyName(cell.value, options.propertyMode)
+
+            }).filter(function(n) {
+                return n
+            }).reverse()
+
+            if (propertyMap.length)
+                properties[colNumber] = propertyMap
+
+        }
+
+    }
+
+    // removing (or not) the first rows, before and including the ones that is used as header
     if (!includeHeaderAsValue)
-        rows.splice(0, firstRowIndex + 1)
+        rows.splice(0, firstRowIndex + headerSize)
 
     // iterating through remaining row to fetch the values and build the final data object
+
+    var finalList = isHashed ? {} : []
 
     rows.forEach(function(cells) {
 
@@ -169,7 +272,7 @@ exports.cellsToJson = function(allCells, options) {
             var val
             var colNumber = cell[colProp]
 
-            if (!options.listOnly && !properties[colNumber])
+            if (properties && !properties[colNumber])
                 return
 
             if (typeof cell.numericValue !== 'undefined') {
@@ -189,7 +292,7 @@ exports.cellsToJson = function(allCells, options) {
             if (options.listOnly) {
                 newObject[colNumber - 1] = val
             } else {
-                newObject[properties[colNumber]] = val
+                setPropertyTree(newObject, properties[colNumber], val)
             }
 
         })
@@ -197,6 +300,7 @@ exports.cellsToJson = function(allCells, options) {
         if (hasValues) {
 
             if (options.listOnly) {
+                // this is guaranteed because the list is sorted as needed
                 ignoredDataNumbers.forEach(function(number) {
                     newObject.splice(number - 1, 1)
                 })
@@ -252,7 +356,7 @@ exports.spreadsheetToJson = function(options) {
         if (allWorksheets)
             return worksheets
 
-        var identifiers = normalizeWorksheetIdentifiers(options.worksheet)
+        var identifiers = normalizePossibleIntList(options.worksheet, [0])
 
         var selectedWorksheets = worksheets.filter(function(worksheet, index) {
             return identifiers.indexOf(index) !== -1 || identifiers.indexOf(worksheet.title) !== -1

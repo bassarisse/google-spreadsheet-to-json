@@ -3,6 +3,8 @@
 - Service Account auth support
 - Option to return all worksheets
 - Options to ignore columns or rows
+- Option to choose header line (disabling auto-detection)
+- Support for multiple lines in header (sub-header, merged cells handling)
 
 ## Changes
 - Removed user/password auth method (BREAKING)
