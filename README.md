@@ -1,7 +1,7 @@
 google-spreadsheet-to-json
 ==========================
 
-[![NPM version](https://badge.fury.io/js/google-spreadsheet-to-json.png)](http://badge.fury.io/js/google-spreadsheet-to-json)
+[![NPM version](https://badge.fury.io/js/google-spreadsheet-to-json.png)](http://badge.fury.io/js/google-spreadsheet-to-json) [![Build Status (master branch of bassarisse/google-spreadsheet-to-json)](https://travis-ci.org/bassarisse/google-spreadsheet-to-json.svg?branch=master)](https://travis-ci.org/bassarisse/google-spreadsheet-to-json)
 
 A simple tool to export Google Spreadsheets to JSON files. Can be used though Node API or CLI.
 
