@@ -123,7 +123,7 @@ function cellIsValid(cell) {
 }
 
 // google spreadsheet cells into json
-exports.cellsToJson = function(allCells, options) {
+exports.cellsToJson = function(allCells, options , title) {
 
     // setting up some options, such as defining if the data is horizontal or vertical
     options = options || {}
@@ -314,8 +314,9 @@ exports.cellsToJson = function(allCells, options) {
 
         }
     })
-
-    return finalList
+    var sheetFinal = {}
+    sheetFinal[title] = finalList
+    return sheetFinal
 }
 
 exports.getWorksheets = function(options) {
@@ -349,7 +350,7 @@ exports.spreadsheetToJson = function(options) {
 
     var allWorksheets = !!options.allWorksheets
     var expectMultipleWorksheets = allWorksheets || Array.isArray(options.worksheet)
-
+    var worksheetTitles = []
     return exports.getWorksheets(options)
     .then(function(worksheets) {
 
@@ -372,13 +373,14 @@ exports.spreadsheetToJson = function(options) {
     })
     .then(function(worksheets) {
         return Promise.all(worksheets.map(function(worksheet) {
+            worksheetTitles.push(worksheet.title)
             return worksheet.getCellsAsync()
         }))
     })
     .then(function(results) {
 
-        var finalList = results.map(function(allCells) {
-            return exports.cellsToJson(allCells, options)
+        var finalList = results.map(function(allCells , index) {
+            return exports.cellsToJson(allCells, options , worksheetTitles[index])
         })
 
         return expectMultipleWorksheets ? finalList : finalList[0]
