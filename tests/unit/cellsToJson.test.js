@@ -3,12 +3,12 @@ const helper = require('../../helper')
 
 describe('Cells to JSON', function () {
   const cells = [
-    { row: 1, col: 1, value: 'name', numericValue: undefined },
-    { row: 1, col: 2, value: 'year', numericValue: undefined },
-    { row: 2, col: 1, value: 'Forrest Gump', numericValue: undefined },
-    { row: 2, col: 2, value: '1994', numericValue: '1994.0' },
-    { row: 3, col: 1, value: 'Matrix', numericValue: undefined },
-    { row: 3, col: 2, value: '1999', numericValue: '1999.0' }
+    { rowIndex: 1, columnIndex: 1, value: 'name', numericValue: undefined },
+    { rowIndex: 1, columnIndex: 2, value: 'year', numericValue: undefined },
+    { rowIndex: 2, columnIndex: 1, value: 'Forrest Gump', numericValue: undefined },
+    { rowIndex: 2, columnIndex: 2, value: '1994', numericValue: '1994.0' },
+    { rowIndex: 3, columnIndex: 1, value: 'Matrix', numericValue: undefined },
+    { rowIndex: 3, columnIndex: 2, value: '1999', numericValue: '1999.0' }
   ]
 
   it('converts cells to JSON with default values', function () {

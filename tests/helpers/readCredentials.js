@@ -44,14 +44,14 @@ function validateCredentials (credentials, logger) {
 }
 
 async function getCredentials (filepath = false) {
-  const environmentCredentials = getRawCredentialsFromEnvironment(filepath)
+  const environmentCredentials = getRawCredentialsFromEnvironment()
   let rawCredentials
 
   // switch priority based on input
   if (filepath) {
-    rawCredentials = await getRawCredentialsFromFileSystem() || environmentCredentials
+    rawCredentials = await getRawCredentialsFromFileSystem(filepath) || environmentCredentials
   } else {
-    rawCredentials = environmentCredentials || await getRawCredentialsFromFileSystem()
+    rawCredentials = environmentCredentials || await getRawCredentialsFromFileSystem(filepath)
   }
 
   const credentials = parseCredentials(rawCredentials)

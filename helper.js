@@ -1,11 +1,10 @@
-
 const fs = require('fs')
-const GoogleSpreadsheet = require('google-spreadsheet')
-const Promise = require('bluebird')
+const { GoogleSpreadsheet } = require('google-spreadsheet')
 
 // constants used for converting column names into number/index
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 const ALPHABET_BASE = ALPHABET.length
+const NOT_FOUND = -1
 
 function capitalize (str) {
   return str.charAt(0).toUpperCase() + str.slice(1)
@@ -25,8 +24,7 @@ function parseServiceAccountCredentials (credentials) {
       return JSON.parse(fs.readFileSync(credentials, 'utf8'))
     }
   }
-
-  return credentials
+  return credentials || {}
 }
 
 function handlePropertyName (cellValue, handleMode) {
@@ -34,7 +32,7 @@ function handlePropertyName (cellValue, handleMode) {
 
   if (handleModeType === 'function') { return handleMode(cellValue) }
 
-  const propertyName = (cellValue || '').trim()
+  const propertyName = (cellValue + '').trim()
 
   if (handleMode === 'camel' || handleModeType === 'undefined') {
     return getWords(propertyName.toLowerCase()).map(function (word, index) {
@@ -92,7 +90,7 @@ function parseColIdentifier (col) {
     return col.trim().replace(/[ .]/i, '').toLowerCase().split('').reverse().reduce(function (totalValue, letter, index) {
       const alphaIndex = ALPHABET.indexOf(letter)
 
-      if (alphaIndex === -1) { throw new Error('Column identifier format is invalid') }
+      if (alphaIndex === NOT_FOUND) { throw new Error('Column identifier format is invalid') }
 
       const value = alphaIndex + 1
 
@@ -105,17 +103,17 @@ function parseColIdentifier (col) {
   return col
 }
 
-function cellIsValid (cell) {
-  return !!cell && typeof cell.value === 'string' && cell.value !== ''
+function cellHasValue (cell) {
+  return cell && cell.value
 }
 
 // google spreadsheet cells into json
-exports.cellsToJson = function (allCells, options) {
+function cellsToJson (allCells, options) {
   // setting up some options, such as defining if the data is horizontal or vertical
   options = options || {}
 
-  const rowProp = options.vertical ? 'col' : 'row'
-  const colProp = options.vertical ? 'row' : 'col'
+  const rowProp = options.vertical ? 'columnIndex' : 'rowIndex'
+  const colProp = options.vertical ? 'rowIndex' : 'columnIndex'
   const isHashed = options.hash && !options.listOnly
   const includeHeaderAsValue = options.listOnly && options.includeHeader
   const headerStartNumber = options.headerStart ? parseColIdentifier(options.headerStart) : 0
@@ -130,13 +128,13 @@ exports.cellsToJson = function (allCells, options) {
   // organizing (and ordering) the cells into arrays
 
   const rows = []
-
-  allCells.forEach(function (cell) {
-    if (ignoredRows.indexOf(cell.row) !== -1 || ignoredCols.indexOf(cell.col) !== -1) { return }
+  const cellsWithValues = allCells.filter(cellHasValue)
+  cellsWithValues.forEach(function (cell) {
+    if (ignoredRows.indexOf(cell.rowIndex) !== NOT_FOUND || ignoredCols.indexOf(cell.columnIndex) !== NOT_FOUND) { return }
 
     maxCol = Math.max(maxCol, cell[colProp])
 
-    const rowIndex = cell[rowProp] - 1
+    const rowIndex = cell[rowProp]
     if (typeof rows[rowIndex] === 'undefined') { rows[rowIndex] = [] }
     rows[rowIndex].push(cell)
   })
@@ -173,7 +171,7 @@ exports.cellsToJson = function (allCells, options) {
       return index >= firstRowIndex && index <= headerEndRowIndex
     }).reverse()
 
-    for (let colNumber = 1; colNumber <= maxCol; colNumber++) {
+    for (let colNumber = 0; colNumber <= maxCol; colNumber++) {
       let foundFirstCell = false
 
       const propertyMap = headerRows.map(function (row, index) {
@@ -183,7 +181,7 @@ exports.cellsToJson = function (allCells, options) {
 
         // the first header cell (from the bottom to top) must be from this column,
         // so we don't check to the left
-        const isCellValid = cellIsValid(headerCell)
+        const isCellValid = cellHasValue(headerCell)
         if (!foundFirstCell && isCellValid) {
           foundFirstCell = true
         } else if (foundFirstCell && !isCellValid) {
@@ -199,7 +197,7 @@ exports.cellsToJson = function (allCells, options) {
             const hasCellBelow = headerRows.filter(function (r, i) {
               return i === index - 1
             }).some(function (r) {
-              return cellIsValid(r.filter(function (cell) {
+              return cellHasValue(r.filter(function (cell) {
                 return cell[colProp] === headerCell[colProp]
               })[0])
             })
@@ -210,7 +208,7 @@ exports.cellsToJson = function (allCells, options) {
 
         return headerCell
       }).map(function (cell) {
-        const isCellValid = cellIsValid(cell)
+        const isCellValid = cellHasValue(cell)
         return isCellValid ? handlePropertyName(cell.value, options.propertyMode) : false
       }).filter(n => n).reverse()
 
@@ -275,61 +273,88 @@ exports.cellsToJson = function (allCells, options) {
   return finalList
 }
 
-exports.getWorksheets = function (options) {
-  return Promise.try(function () {
-    const spreadsheet = Promise.promisifyAll(new GoogleSpreadsheet(options.spreadsheetId))
+async function setupSpreadsheet ({ spreadsheetId, credentials, apiKey }) {
+  const doc = new GoogleSpreadsheet(spreadsheetId)
+  const parsedCredentials = parseServiceAccountCredentials(credentials)
 
-    if (options.credentials) { return spreadsheet.useServiceAccountAuthAsync(parseServiceAccountCredentials(options.credentials)).return(spreadsheet) }
+  if (parsedCredentials.client_email && parsedCredentials.private_key) {
+    await doc.useServiceAccountAuth(parsedCredentials)
+  }
 
-    if (options.token) {
-      spreadsheet.setAuthToken({
-        value: options.token,
-        type: options.tokentype || 'Bearer'
-      })
-    }
+  if (apiKey) {
+    doc.useApiKey(apiKey)
+  }
 
-    return spreadsheet
-  })
-    .then(function (spreadsheet) {
-      return spreadsheet.getInfoAsync()
-    })
-    .then(function (sheetInfo) {
-      return sheetInfo.worksheets.map(function (worksheet) {
-        return Promise.promisifyAll(worksheet)
-      })
-    })
+  /* Future goal: Add OAuth client mechanism as documented
+   * https://theoephraim.github.io/node-google-spreadsheet/#/getting-started/authentication?id=oauth
+   */
+
+  return doc
 }
 
-exports.spreadsheetToJson = function (options) {
+async function getWorksheets (options) {
+  const { spreadsheetId, credentials } = options
+  let spreadsheet
+  try {
+    spreadsheet = await setupSpreadsheet({ spreadsheetId, credentials })
+    await spreadsheet.loadInfo()
+  } catch (ex) {
+    console.error('Unable to setup spreadsheet:', ex.message, 'using options:', Object.keys(options || {}))
+    throw ex
+  }
+
+  return spreadsheet.sheetsByIndex || []
+}
+
+async function spreadsheetToJson (options) {
   const allWorksheets = !!options.allWorksheets
-  const expectMultipleWorksheets = allWorksheets || Array.isArray(options.worksheet)
+  const { worksheet } = options
+  const expectMultipleWorksheets = allWorksheets || Array.isArray(worksheet)
 
-  return exports.getWorksheets(options)
-    .then(function (worksheets) {
-      if (allWorksheets) { return worksheets }
+  const worksheets = await getWorksheets(options)
+  if (allWorksheets) {
+    return worksheets
+  }
 
-      const identifiers = normalizePossibleIntList(options.worksheet, [0])
+  const identifiers = normalizePossibleIntList(options.worksheet, [0])
 
-      let selectedWorksheets = worksheets.filter(function (worksheet, index) {
-        return identifiers.indexOf(index) !== -1 || identifiers.indexOf(worksheet.title) !== -1
-      })
+  let selectedWorksheets = worksheets.filter((worksheet, index) => {
+    return identifiers.indexOf(index) !== NOT_FOUND || identifiers.indexOf(worksheet.title) !== NOT_FOUND
+  })
 
-      if (!expectMultipleWorksheets) { selectedWorksheets = selectedWorksheets.slice(0, 1) }
+  if (!expectMultipleWorksheets) {
+    selectedWorksheets = selectedWorksheets.slice(0, 1)
+  }
 
-      if (selectedWorksheets.length === 0) { throw new Error('No worksheet found!') }
+  if (selectedWorksheets.length === 0) {
+    throw new Error('[google-spreadsheet-to-json] [helper.js] No worksheet found!')
+  }
 
-      return selectedWorksheets
-    })
-    .then(function (worksheets) {
-      return Promise.all(worksheets.map(function (worksheet) {
-        return worksheet.getCellsAsync()
-      }))
-    })
-    .then(function (results) {
-      const finalList = results.map(function (allCells) {
-        return exports.cellsToJson(allCells, options)
-      })
+  const worksheetsMappedToCells = await Promise.all(selectedWorksheets.map(getAllCells))
+  const worksheetsMappedToJson = worksheetsMappedToCells.map(cells => {
+    return cellsToJson(cells, options)
+  })
 
-      return expectMultipleWorksheets ? finalList : finalList[0]
-    })
+  return expectMultipleWorksheets ? worksheetsMappedToJson : worksheetsMappedToJson[0]
+}
+
+async function getAllCells (worksheet) {
+  await worksheet.loadCells()
+  const cells = []
+  let j = 0
+  while (j < worksheet.rowCount) {
+    let i = 0
+    while (i < worksheet.columnCount) {
+      cells.push(worksheet.getCell(j, i))
+      i++
+    }
+    j++
+  }
+  return cells
+}
+
+module.exports = {
+  getWorksheets,
+  spreadsheetToJson,
+  cellsToJson
 }
