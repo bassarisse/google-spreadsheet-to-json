@@ -300,7 +300,6 @@ async function getWorksheets (options) {
     await spreadsheet.loadInfo()
   } catch (ex) {
     console.error('Unable to setup spreadsheet:', ex.message, 'using options:', Object.keys(options || {}))
-    throw ex
   }
 
   return spreadsheet.sheetsByIndex || []

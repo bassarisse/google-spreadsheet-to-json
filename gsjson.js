@@ -26,15 +26,16 @@ program
   .option('--ignore-row <n>', 'Row number to be ignored (can be repeated)', handlePossibleList)
   .parse(process.argv)
 
+const options = program.opts()
+options.spreadsheetId = program.args[0] || program.spreadsheetId
+
 if (program.args.length < 1) {
   program.help()
 }
 
-program.spreadsheetId = program.args[0] || program.spreadsheetId
-
 const filename = program.args[1]
 
-helper.spreadsheetToJson(program)
+helper.spreadsheetToJson(options)
   .then(function (result) {
     return JSON.stringify(result, null, program.beautify ? 4 : null)
   })
