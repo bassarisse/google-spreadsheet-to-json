@@ -1,5 +1,5 @@
 const { expect } = require('chai')
-const helper = require('../helper')
+const helper = require('../../helper')
 
 describe('Cells to JSON', function () {
   const cells = [

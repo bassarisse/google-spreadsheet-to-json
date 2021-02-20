@@ -9,7 +9,7 @@
     "url": "https://github.com/bassarisse/google-spreadsheet-to-json.git"
   },
   "scripts": {
-    "test": "standard --env mocha && mocha tests/*.js",
+    "test": "standard --env mocha && mocha tests/**/*.test.js",
     "lint": "standard --fix --env mocha"
   },
   "keywords": [
