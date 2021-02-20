@@ -1,13 +1,13 @@
-var gsjson = require('./index')
+const gsjson = require('./index')
 
 gsjson({
-    spreadsheetId: 'spreadsheetId',
-    token: 'token'
+  spreadsheetId: 'spreadsheetId',
+  token: 'token'
 })
-.then(function(res) {
+  .then(function (res) {
     console.log(res)
     console.log(res.length)
-})
-.catch(function(err) {
+  })
+  .catch(function (err) {
     console.log(err.stack)
-})
+  })
