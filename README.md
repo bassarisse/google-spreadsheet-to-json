@@ -1,7 +1,18 @@
 google-spreadsheet-to-json
 ==========================
 
-[![NPM version](https://badge.fury.io/js/google-spreadsheet-to-json.png)](http://badge.fury.io/js/google-spreadsheet-to-json) [![Build Status (master branch of bassarisse/google-spreadsheet-to-json)](https://travis-ci.org/bassarisse/google-spreadsheet-to-json.svg?branch=master)](https://travis-ci.org/bassarisse/google-spreadsheet-to-json)
+** warning : this is a deliberate fork of the original bassarisse/google-spreadsheet-to-json project **
+
+New goals as follows:
+- ✅ Use github actions and PR flow to manage change
+- ❎ Focus on new v4 google API using theoephraim/node-google-spreadsheet at v3.1.15 with enforced authentication
+- ❎ Add a CI test for end-to-end authentication flow using github secrets
+- ❎ Update README 
+- ❎ Use async await pattern instead of promises in examples
+
+Please raise an issue / suggestions on this repo if you see space for improvements.
+
+## Description
 
 A simple tool to export Google Spreadsheets to JSON files. Can be used though Node API or CLI.
 
