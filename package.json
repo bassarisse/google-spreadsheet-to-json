@@ -1,8 +1,8 @@
 {
   "name": "google-spreadsheet-to-json",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Simple tool to export Google Spreadsheets to JSON files, though Node API or command-line",
-  "author": "Bruno Assarisse <bruno@assarisse.com.br> (http://bassarisse.com)",
+  "author": "Bruno Assarisse <bruno@assarisse.com.br> (http://bassarisse.com) + other contributors",
   "license": "Unlicense",
   "repository": {
     "type": "git",
