@@ -7,7 +7,6 @@ jobs:
   test:
     name: Linting and Testing
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -25,3 +24,5 @@ jobs:
 
     - name: Run default tests
       run: npm test -s
+      env:
+          GOOGLE_SERVICE_ACCOUNT_SECURE_CREDENTIALS: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_SECURE_CREDENTIALS }}
