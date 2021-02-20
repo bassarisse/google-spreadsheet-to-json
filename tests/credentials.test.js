@@ -18,7 +18,7 @@ describe('Read Credentials', () => {
 
   describe('From local file', () => {
     it('should read credentials from the local system', async () => {
-      const actual = await readCredentials()
+      const actual = await readCredentials('secure-credentials-example.json')
       const actualKeys = Object.keys(actual)
       expect(actualKeys).to.deep.equal(expectedKeys)
       expect(warnings).to.deep.equal([])

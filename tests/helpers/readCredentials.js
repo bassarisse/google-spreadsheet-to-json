@@ -1,8 +1,8 @@
 const asyncFs = require('fs').promises
 const logPrefix = '[google-spreadsheet-to-json readCredentials]'
 
-async function getRawCredentialsFromFileSystem (filepath = false) {
-  const credentialsFilePath = filepath || 'secure-credentials-example.json'
+async function getRawCredentialsFromFileSystem (filepath) {
+  const credentialsFilePath = filepath || 'secure-credentials.json'
   let rawCredentialsFile
   try {
     rawCredentialsFile = await asyncFs.readFile(credentialsFilePath)
@@ -43,9 +43,18 @@ function validateCredentials (credentials, logger) {
   }
 }
 
-async function getCredentials () {
-  const environmentCredentials = getRawCredentialsFromEnvironment()
-  const credentials = parseCredentials(environmentCredentials || await getRawCredentialsFromFileSystem())
+async function getCredentials (filepath = false) {
+  const environmentCredentials = getRawCredentialsFromEnvironment(filepath)
+  let rawCredentials
+
+  // switch priority based on input
+  if (filepath) {
+    rawCredentials = await getRawCredentialsFromFileSystem() || environmentCredentials
+  } else {
+    rawCredentials = environmentCredentials || await getRawCredentialsFromFileSystem()
+  }
+
+  const credentials = parseCredentials(rawCredentials)
 
   validateCredentials(credentials, console.warn)
 
