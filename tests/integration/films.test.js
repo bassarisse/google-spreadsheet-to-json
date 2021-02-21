@@ -4,6 +4,7 @@ const readCredentials = require('../helpers/readCredentials')
 
 const longRunningTestTimeoutInMs = 10000
 const spreadsheetId = '1G2_YLuQeKXCtpOWshqIBazzUeefuOMDZ5q10F2u9MHw'
+const EMPTY_WORKSHEET = []
 
 describe('Film Spreadsheet to JSON using Private Auth Credentials', () => {
   let credentials
@@ -37,7 +38,7 @@ describe('Film Spreadsheet to JSON using Private Auth Credentials', () => {
     }, {
       name: 'Matrix',
       year: 1999
-    }], [{
+    }], EMPTY_WORKSHEET, [{
       name: 'Red',
       hex: '#FF0000',
       rgb: '255,0,0'

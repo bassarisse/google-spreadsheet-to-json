@@ -332,6 +332,7 @@ function selectWorksheetsBasedOn (worksheets, options) {
 
 async function spreadsheetToJson (options) {
   const worksheets = await getWorksheets(options)
+
   const selectedWorksheets = selectWorksheetsBasedOn(worksheets, options)
 
   const worksheetsMappedToCells = await Promise.all(selectedWorksheets.map(getAllCells))
@@ -346,16 +347,25 @@ async function spreadsheetToJson (options) {
 }
 
 async function getAllCells (worksheet) {
-  await worksheet.loadCells()
   const cells = []
-  let j = 0
-  while (j < worksheet.rowCount) {
-    let i = 0
-    while (i < worksheet.columnCount) {
-      cells.push(worksheet.getCell(j, i))
-      i++
+  try {
+    await worksheet.loadCells()
+    let j = 0
+    while (j < worksheet.rowCount) {
+      let i = 0
+      while (i < worksheet.columnCount) {
+        cells.push(worksheet.getCell(j, i))
+        i++
+      }
+      j++
     }
-    j++
+  } catch (ex) {
+    if (ex.message === 'Cannot read property \'rowCount\' of undefined') {
+      // skip worksheet - does not contain cells
+    } else {
+      const { title, index } = (worksheet || {})._rawProperties
+      console.warn('Get all cells failed for worksheet:', { title, index }, 'Error:', ex.message)
+    }
   }
   return cells
 }
