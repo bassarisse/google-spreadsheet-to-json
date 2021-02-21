@@ -1,3 +1,7 @@
+# 2.0.1
+## Changes
+- Fix bug with `allWorksheets: true` and added additional test
+
 # 2.0.0
 ## New
 - Tests and CI using Github Actions to repo
