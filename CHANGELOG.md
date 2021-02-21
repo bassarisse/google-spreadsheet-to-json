@@ -1,3 +1,7 @@
+# 2.0.2
+## Changes
+- Add guard for parsing worksheets that don't contain cells; i.e. charts
+
 # 2.0.1
 ## Changes
 - Fix bug with `allWorksheets: true` and added additional test
