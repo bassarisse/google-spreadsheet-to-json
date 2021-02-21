@@ -305,17 +305,15 @@ async function getWorksheets (options) {
   return spreadsheet.sheetsByIndex || []
 }
 
-async function spreadsheetToJson (options) {
-  const allWorksheets = !!options.allWorksheets
+function selectWorksheetsBasedOn (worksheets, options) {
   const { worksheet } = options
+  const allWorksheets = !!options.allWorksheets
   const expectMultipleWorksheets = allWorksheets || Array.isArray(worksheet)
+  const identifiers = normalizePossibleIntList(options.worksheet, [0])
 
-  const worksheets = await getWorksheets(options)
   if (allWorksheets) {
     return worksheets
   }
-
-  const identifiers = normalizePossibleIntList(options.worksheet, [0])
 
   let selectedWorksheets = worksheets.filter((worksheet, index) => {
     return identifiers.indexOf(index) !== NOT_FOUND || identifiers.indexOf(worksheet.title) !== NOT_FOUND
@@ -329,11 +327,21 @@ async function spreadsheetToJson (options) {
     throw new Error('[google-spreadsheet-to-json] [helper.js] No worksheet found!')
   }
 
+  return selectedWorksheets
+}
+
+async function spreadsheetToJson (options) {
+  const worksheets = await getWorksheets(options)
+  const selectedWorksheets = selectWorksheetsBasedOn(worksheets, options)
+
   const worksheetsMappedToCells = await Promise.all(selectedWorksheets.map(getAllCells))
   const worksheetsMappedToJson = worksheetsMappedToCells.map(cells => {
     return cellsToJson(cells, options)
   })
 
+  const { worksheet } = options
+  const allWorksheets = !!options.allWorksheets
+  const expectMultipleWorksheets = allWorksheets || Array.isArray(worksheet)
   return expectMultipleWorksheets ? worksheetsMappedToJson : worksheetsMappedToJson[0]
 }
 
