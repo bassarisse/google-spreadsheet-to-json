@@ -1,10 +1,13 @@
 google-spreadsheet-to-json
 ==========================
 
-[![NPM version](https://badge.fury.io/js/google-spreadsheet-to-json.png)](http://badge.fury.io/js/google-spreadsheet-to-json) [![Build Status (master branch of bassarisse/google-spreadsheet-to-json)](https://travis-ci.org/bassarisse/google-spreadsheet-to-json.svg?branch=master)](https://travis-ci.org/bassarisse/google-spreadsheet-to-json)
+** 2020-02-20 : This fork of `bassarisse/google-spreadsheet-to-json` project adds more tests; implements against the Google v4 API using the latest version of `theoephraim/node-google-spreadsheet` and Service Account credentials. **
+
+Please raise an issue or suggestions on the original repo and tag me @johnbeech you see space for improvements - like missing tests or broken functionality.
+
+## Description
 
 A simple tool to export Google Spreadsheets to JSON files. Can be used though Node API or CLI.
-
 
 ## Installation
 
@@ -17,7 +20,6 @@ Node API:
 ```
 $ npm install --save google-spreadsheet-to-json
 ```
-
 
 ## Help
 
@@ -66,34 +68,40 @@ You can also redirect the output if you omit the filename:
 $ gsjson abc123456789 >> data.json
 ```
 
-
 ## Usage (Node API)
 
 With the exception of `beautify` and the file path, the same options from the CLI applies here (options like `include-header` becomes `includeHeader`).
 
 ```javascript
-var gsjson = require('google-spreadsheet-to-json');
+const gsjson = require('google-spreadsheet-to-json');
 
-gsjson({
-    spreadsheetId: 'abc123456789',
-    // other options...
-})
-.then(function(result) {
-    console.log(result.length);
-    console.log(result);
-})
-.catch(function(err) {
-    console.log(err.message);
-    console.log(err.stack);
-});
+const credentials = {
+  client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+  private_key: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
+}
+
+async function example () {
+  try {
+    const result = await gsjson({
+      spreadsheetId: 'abc123456789',
+      credentials
+      // other options...
+    })
+    console.log(result.length)
+    console.log(result)
+  } catch (ex) {
+    console.log(ex.message)
+    console.log(ex.stack)
+  }
+}
+
+example()
 ```
-
 
 ### Notes
 
-- A spreadsheet ID can be extracted from its URL.
-- If an array is passed on the `worksheet` option (in CLI, this can be done by repeating the argument) or the `allWorksheets` option is used, the output from each worksheet is returned inside an array (the order is not guaranteed).
-
+- A spreadsheet ID can be extracted from its URL - for example `https://docs.google.com/spreadsheets/d/1G2_YLuQeKXCtpOWshqIBazzUeefuOMDZ5q10F2u9MHw/edit#gid=0` becomes `1G2_YLuQeKXCtpOWshqIBazzUeefuOMDZ5q10F2u9MHw`
+- If an array is passed on the `worksheet` option (in CLI, this can be done by repeating the argument) or the `allWorksheets` option is used, the output from each worksheet is returned inside an array; however the order is not guaranteed.
 
 ## About authentication
 
@@ -108,22 +116,29 @@ For quick tests, there's a method to acquire a temporary token:
 
 For more detailed information regarding auth methods: https://github.com/theoephraim/node-google-spreadsheet
 
-
 ## Known issues
 
-- Public spreadsheets can only be used without authentication if the option "File > Publish to the web" is used in the Google Spreadsheets GUI, even if the spreadsheet is visible to everyone. This problem won't occur when authenticated.
+- Public spreadsheets are not currently supported - although there is a way to access raw JSON from a spreadsheet which could be supported in future: `https://spreadsheets.google.com/feeds/cells/1G2_YLuQeKXCtpOWshqIBazzUeefuOMDZ5q10F2u9MHw/1/public/full?alt=json` - this works if the option "File > Publish to the web" is used in the Google Spreadsheets GUI, even if the spreadsheet is visible to everyone. This problem won't occur when authenticated.
 
+## Examples
 
-## Examples & change log
+See [EXAMPLES.md](./EXAMPLES.md)
 
-See specific files.
+## Change Log
 
+See [CHANGELOG.md](./CHANGELOG.md)
 
 ## TO-DO
 
 - Improve options documentation (especially header size)
 - Create more test cases
 
-
 ## License
 google-spreadsheet-to-json is free and unencumbered public domain software. For more information, see the accompanying UNLICENSE file.
+
+
+## Contributors
+
+- @bassarisse Bruno Assarisse
+- @cigolpl Mateusz
+- @johnbeech John Beech (Connected Web)

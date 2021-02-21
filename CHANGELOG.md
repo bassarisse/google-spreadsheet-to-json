@@ -1,3 +1,24 @@
+# 2.0.2
+## Changes
+- Add guard for parsing worksheets that don't contain cells; i.e. charts
+
+# 2.0.1
+## Changes
+- Fix bug with `allWorksheets: true` and added additional test
+
+# 2.0.0
+## New
+- Tests and CI using Github Actions to repo
+
+## Changes
+- Fixed security vulnerabilities reported by `npm audit`
+- Updated google-spreadsheet depenedncy
+- Removed support for public published sheets due to deprecated authentication options 
+- Examples now use async await
+- Changed internal workings to use 0 based indexes for rows and columns
+- Changed internal workings to use cleaner async await code
+- Introduced standard js as the enforced linter as part of the CI actions
+
 # 1.0.0
 ## New
 - Service Account auth support
